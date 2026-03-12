@@ -13,3 +13,7 @@
 ## Git 충돌 처리
 
 push/rebase/merge 충돌 발생 시 `/resolve-conflict` skill을 따른다.
+
+## Claude 설정 변경 관리
+
+`~/.claude/` 내 파일(CLAUDE.md, skills/, settings.json 등)을 수정한 경우, 작업 마무리 시 변경사항을 사용자에게 보여주고 `/commit`으로 커밋 & push한다.
