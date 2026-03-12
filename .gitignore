@@ -17,3 +17,7 @@ todos/
 backups/
 projects/
 mcp-needs-auth-cache.json
+history.jsonl
+plugins/blocklist.json
+plugins/known_marketplaces.json
+plugins/marketplaces/
