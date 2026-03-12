@@ -1,25 +1,33 @@
 ---
 name: code-plan
-description: 구현 전 계획서를 작성하고 사용자 승인을 받습니다. 계획은 프로젝트 루트의 plans/ 폴더에 버전 관리됩니다.
+description: 구현 전 계획서를 작성하고 사용자 승인을 받습니다. 계획은 프로젝트 루트의 claude-plans/ 폴더에 버전 관리됩니다.
 model: opus
-allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(cat *), Bash(ls *), Glob
+allowed-tools: Read, Write, Edit, Bash(mkdir *), Bash(cat *), Bash(ls *), Bash(git config *), Bash(grep *), Bash(echo *), Glob
 ---
 
 # Plan Workflow
 
 구현 작업 전 계획서를 작성하고 사용자 승인을 받는 워크플로우.
 
-## 1. 프로젝트 루트 및 plans 폴더 확인
+## 1. 프로젝트 루트 및 claude-plans 폴더 확인
 
-현재 작업 중인 프로젝트 루트에 `plans/` 폴더를 준비한다.
+현재 작업 중인 프로젝트 루트에 `claude-plans/` 폴더를 준비한다.
 
 ```bash
-mkdir -p plans
+mkdir -p claude-plans
 ```
 
-`.gitignore`에 `plans/` 항목이 없으면 추가한다:
+### gitignore 확인
+
+글로벌 gitignore(`~/.gitignore_global`)에 `claude-plans/`가 등록되어 있는지 확인한다.
+등록되어 있지 않으면 글로벌 gitignore에 추가하고, `core.excludesfile` 설정도 확인한다:
+
 ```bash
-grep -qxF 'plans/' .gitignore 2>/dev/null || echo 'plans/' >> .gitignore
+# 글로벌 gitignore 파일에 claude-plans/ 추가
+grep -qxF 'claude-plans/' ~/.gitignore_global 2>/dev/null || echo 'claude-plans/' >> ~/.gitignore_global
+
+# core.excludesfile이 설정되어 있지 않으면 설정
+git config --global core.excludesfile 2>/dev/null || git config --global core.excludesfile ~/.gitignore_global
 ```
 
 ## 2. 계획서 파일 결정
@@ -68,7 +76,7 @@ grep -qxF 'plans/' .gitignore 2>/dev/null || echo 'plans/' >> .gitignore
 계획서 작성 후 반드시 사용자에게 다음을 전달한다:
 
 ```
-계획서를 작성했습니다: plans/plan-{feature-name}.md
+계획서를 작성했습니다: claude-plans/plan-{feature-name}.md
 
 [계획서 내용 요약]
 
