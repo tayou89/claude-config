@@ -1,0 +1,19 @@
+# 인증 정보 (절대 커밋 금지)
+.credentials.json
+
+# 머신별 설정
+settings.local.json
+
+# 런타임/캐시 데이터
+cache/
+debug/
+file-history/
+ide/
+session-env/
+shell-snapshots/
+statsig/
+telemetry/
+todos/
+backups/
+projects/
+mcp-needs-auth-cache.json
