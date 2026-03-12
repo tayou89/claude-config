@@ -43,6 +43,14 @@ grep -qxF 'plans/' .gitignore 2>/dev/null || echo 'plans/' >> .gitignore
 1. 단계별 구현 계획
 2. ...
 
+각 단계에서 코드 수정이 있는 경우 before/after 코드 블록으로 구체적인 변경 내용을 표현한다:
+
+\`\`\`diff
+# path/to/file.ts (L42-45)
+- 기존 코드
++ 변경 코드
+\`\`\`
+
 ### Files to Modify / Create
 - `path/to/file.ts` — 변경 이유
 - ...
