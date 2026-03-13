@@ -87,3 +87,4 @@ git commit -m "<Type>: <subject>"
 - `.env`, 인증키, 비밀번호 등 민감 정보 커밋 금지
 - 관련 없는 변경사항은 별도 커밋으로 분리
 - `git add -A` 또는 `git add .` 사용 주의 — 불필요한 파일 포함 가능성
+- `Co-Authored-By` 등 자동 생성 trailer를 커밋 메시지에 넣지 않는다

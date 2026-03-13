@@ -22,6 +22,40 @@ if (condition) {
 if (condition) return value;
 ```
 
+## Early Return 금지
+
+함수/메서드 중간에서 `return`으로 일찍 빠져나가지 않는다. 값을 반환하지 않는 함수에서 조건 분기로 `return`을 사용하거나, `if`/`else` 모든 분기에서 `return`하는 경우(guard clause 패턴) 대신 **조건 분기(`if`/`else`)로 흐름을 제어**한다.
+
+```javascript
+// ✅ Good
+allocWork = async (plateNo, workplaceId) => {
+    if (!this._allocLock) {
+        this._allocLock = true;
+        try {
+            await this.doWork(plateNo, workplaceId);
+        } finally {
+            this._allocLock = false;
+        }
+    } else {
+        this.info(`할당 작업 진행 중: `, { plateNo, workplaceId });
+    }
+};
+
+// ❌ Bad
+allocWork = async (plateNo, workplaceId) => {
+    if (this._allocLock) {
+        this.info(`할당 작업 진행 중: `, { plateNo, workplaceId });
+        return;
+    }
+    this._allocLock = true;
+    try {
+        await this.doWork(plateNo, workplaceId);
+    } finally {
+        this._allocLock = false;
+    }
+};
+```
+
 ## 변수 선언 후 빈 줄
 
 연속된 변수 선언(`const`, `let`, `var`) 블록의 **마지막 줄 다음에 빈 줄 하나**를 넣어 로직과 분리한다.
