@@ -27,7 +27,14 @@
       "Bash(gh *)",
       "Bash(node *)",
       "Bash(npm list *)",
-      "Bash(pip list *)"
+      "Bash(pip list *)",
+      "Bash(find *)",
+      "Bash(file *)",
+      "Bash(tree *)",
+      "Bash(du *)",
+      "Bash(df *)",
+      "Bash(stat *)",
+      "Bash(cd * && *)"
     ]
   },
   "hooks": {

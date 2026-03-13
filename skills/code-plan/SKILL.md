@@ -69,7 +69,10 @@ git config --global core.excludesfile 2>/dev/null || git config --global core.ex
 ---
 ```
 
-수정 버전의 경우 위 내용을 기존 파일 **맨 위**에 삽입하고, 이전 버전의 상태 표시(`PENDING APPROVAL`)를 `SUPERSEDED`로 변경한다.
+수정 버전의 경우:
+- 위 내용을 기존 파일 **맨 위**에 삽입하고, 이전 버전의 상태 표시(`PENDING APPROVAL`)를 `SUPERSEDED`로 변경한다.
+- **새 버전은 독립적이고 완전한 계획서**여야 한다. Goal, Implementation Steps, Files to Modify / Create, Test Approach 등 모든 섹션을 새로 작성한다. 이전 버전의 내용을 참조하거나 "v2와 동일" 같은 표현을 사용하지 않는다.
+- 이전 버전은 이력으로 그대로 보존한다 (삭제하지 않음).
 
 ## 4. 승인 요청
 
