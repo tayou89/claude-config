@@ -22,38 +22,67 @@ if (condition) {
 if (condition) return value;
 ```
 
-## Early Return 금지
+## 조기 void return 금지 — if-else 사용
 
-함수/메서드 중간에서 `return`으로 일찍 빠져나가지 않는다. 값을 반환하지 않는 함수에서 조건 분기로 `return`을 사용하거나, `if`/`else` 모든 분기에서 `return`하는 경우(guard clause 패턴) 대신 **조건 분기(`if`/`else`)로 흐름을 제어**한다.
+특정 값을 반환하는 early return(`return false`, `return 0` 등)은 허용하되, **void return으로 함수를 빠져나가는 guard clause는 사용하지 않는다**. 대신 if-else 구조로 처리한다.
 
 ```javascript
 // ✅ Good
-allocWork = async (plateNo, workplaceId) => {
-    if (!this._allocLock) {
-        this._allocLock = true;
-        try {
-            await this.doWork(plateNo, workplaceId);
-        } finally {
-            this._allocLock = false;
-        }
+subscribe = async (routingKey) => {
+    if (this._channel) {
+        // 메인 로직
     } else {
-        this.info(`할당 작업 진행 중: `, { plateNo, workplaceId });
+        this._logger.warn('채널 없음');
     }
 };
 
 // ❌ Bad
-allocWork = async (plateNo, workplaceId) => {
-    if (this._allocLock) {
-        this.info(`할당 작업 진행 중: `, { plateNo, workplaceId });
+subscribe = async (routingKey) => {
+    if (!this._channel) {
+        this._logger.warn('채널 없음');
         return;
     }
-    this._allocLock = true;
-    try {
-        await this.doWork(plateNo, workplaceId);
-    } finally {
-        this._allocLock = false;
-    }
+    // 메인 로직
 };
+```
+
+## 긍정 조건 우선
+
+가능하면 if문의 조건은 **부정문(`!`)보다 긍정문**으로 작성한다. else 분기가 없는 단순 조건에서 부정이 자연스러운 경우는 예외로 허용한다.
+
+```javascript
+// ✅ Good
+if (this._channel) {
+    // 메인 로직
+} else {
+    // 에러 처리
+}
+
+// ❌ Bad
+if (!this._channel) {
+    // 에러 처리
+    return;
+}
+// 메인 로직
+```
+
+## 모든 분기에 else 명시
+
+if문에서 값을 반환하거나 처리를 분기하는 경우, **마지막 분기도 반드시 else로 감싼다**. 함수 끝에 if 바깥으로 빠져나와 return하는 패턴을 사용하지 않는다.
+
+```javascript
+// ✅ Good
+if (errorCode) {
+    return `에러코드: ${errorCode}`;
+} else {
+    return '에러코드 없음';
+}
+
+// ❌ Bad
+if (errorCode) {
+    return `에러코드: ${errorCode}`;
+}
+return '에러코드 없음';
 ```
 
 ## 변수 선언 후 빈 줄
@@ -64,38 +93,38 @@ allocWork = async (plateNo, workplaceId) => {
 
 변수 선언 블록 이후의 빈 줄을 제외하고, 메서드/함수 본문 안에서 **실행문 사이에 빈 줄을 넣지 않는다**. 빈 줄은 메서드 간, 클래스 멤버 간 구분에만 사용한다.
 
+## 불필요한 async 제거
+
+`await`를 사용하지 않는 함수에는 `async`를 붙이지 않는다.
+
+## 인라인 콜백 함수 분리
+
+매개변수로 전달되는 **콜백 함수가 길어지면**(대략 5줄 이상) 별도의 메서드/함수로 분리하여 호출한다.
+
 ```javascript
 // ✅ Good
-connect = async () => {
-    const { hostname, port } = this._config.options;
-    const url = `${protocol}://${hostname}:${port}`;
-
-    this._logger.info(`연결 시도: ${hostname}:${port}`);
-    this._connection = await amqp.connect(url);
-    this._channel = await this._connection.createConfirmChannel();
-    await this._channel.prefetch(this._config.prefetch);
-    await this._setupTopology();
-    this._connection.on('close', this._onClose);
-    this._connection.on('error', this._onError);
-    this._logger.info('연결 성공');
-};
+const { consumerTag } = await this._channel.consume(this._queueName, this._onMessage);
 
 // ❌ Bad
-connect = async () => {
-    const { hostname, port } = this._config.options;
-    const url = `${protocol}://${hostname}:${port}`;
+const { consumerTag } = await this._channel.consume(this._queueName, (msg) => {
+    // 10줄 이상의 긴 처리 로직...
+});
+```
 
-    this._logger.info(`연결 시도: ${hostname}:${port}`);
+## try-catch 범위
 
-    this._connection = await amqp.connect(url);
-    this._channel = await this._connection.createConfirmChannel();
+특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다.
 
-    await this._channel.prefetch(this._config.prefetch);
-    await this._setupTopology();
+## 약어 사용 자제
 
-    this._connection.on('close', this._onClose);
-    this._connection.on('error', this._onError);
+변수명, 함수명 등에 **약어(abbreviation)를 가능한 사용하지 않는다**. 이름이 너무 길어지지 않는 한 전체 단어를 사용한다.
 
-    this._logger.info('연결 성공');
-};
+```javascript
+// ✅ Good
+const unsubscribe = scadaWs.onBroadcast('warehouse/status', handler)
+const handler = (data) => { ... }
+
+// ❌ Bad
+const unsub = scadaWs.onBroadcast('warehouse/status', h)
+const h = (data) => { ... }
 ```

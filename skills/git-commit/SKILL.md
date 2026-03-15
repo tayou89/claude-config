@@ -30,7 +30,13 @@ git diff --stat
 
 ## 3. 커밋 메시지 규칙
 
-**형식:** `<Type>: <subject>`
+**형식:**
+```
+<Type>: <subject>
+
+- <변경 상세 1>
+- <변경 상세 2>
+```
 
 ### Type (첫 글자 대문자)
 | Type | 사용 시점 |
@@ -47,21 +53,45 @@ git diff --stat
 - 마침표 없음
 - **구체적**으로 무엇을 했는지 명시
 
+### Body 규칙
+- 첫 줄(subject) 아래에 **빈 줄** 후 `- ` 항목으로 변경 상세를 나열
+- **영어**로 작성 (subject와 동일)
+- 각 항목은 **무엇을 왜 변경했는지** 구체적으로 기술 (파일명, 함수명, 증상 → 원인 → 수정 내용)
+- 단순 변경(한 가지만 수정)이라도 body를 작성하여 맥락을 남긴다
+- Merge 커밋의 경우 포함된 브랜치/변경사항, 충돌 해결 내역을 상세히 기록
+
 ### 예시
 ```
 Feat: add sub-compatible battery check on slot-fixed work allocation
+
+- warehouse.js: add isSubCompatible() check before slot assignment
+- work.js: filter out incompatible batteries in getAvailableBatteries()
+
 Fix: resolve sync pending deadlock on warehouse task cancellation
-Fix: skip mail send when no recipients defined
-Refactor: improve logger strategy, file output, and log level audit
-Chore: disable gpuServer pin detection service calls in transport
+
+- work-control.js: clear syncPending flag in cancel handler to prevent deadlock
+- warehouse.js: add finally block to reset pending state on error
+
 Merge: dev into taegab/feat/teams-webhook for trial operation
+
+- Merge feature/update-api-response-types (API response types V2 spec)
+- Merge taegab/fix/warehouse-cancel-sync-pending (deadlock fix, GPU service disable)
+- Resolve conflicts:
+  - equipment/scada.js: adopt dev condition + info level
+  - controller/transport.js: fix workplaceId bug → swapWorkIdx + info level
 ```
 
 ## 4. 파일 스테이징 및 커밋
 
 ```bash
 git add <파일명>   # 특정 파일만 스테이징 (.env, 민감정보 제외)
-git commit -m "<Type>: <subject>"
+git commit -m "$(cat <<'EOF'
+<Type>: <subject>
+
+- <변경 상세 1>
+- <변경 상세 2>
+EOF
+)"
 ```
 
 ## 5. 연속 커밋 흡수 (amend)
