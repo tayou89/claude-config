@@ -14,6 +14,7 @@
       "Bash(git stash list *)",
       "Bash(git rev-parse *)",
       "Bash(git ls-files *)",
+      "Bash(git -C *)",
       "Bash(ls *)",
       "Bash(cat *)",
       "Bash(head *)",
@@ -34,7 +35,11 @@
       "Bash(du *)",
       "Bash(df *)",
       "Bash(stat *)",
-      "Bash(cd * && *)"
+      "Bash(cd * && *)",
+      "Bash(GIT_SEQUENCE_EDITOR=*)"
+    ],
+    "additionalDirectories": [
+      "/home/tayou/.claude"
     ]
   },
   "hooks": {

@@ -85,6 +85,16 @@ Merge: dev into taegab/feat/teams-webhook for trial operation
 
 ```bash
 git add <파일명>   # 특정 파일만 스테이징 (.env, 민감정보 제외)
+```
+
+### 스테이징 확인 (필수)
+
+커밋 실행 전에 반드시 `git diff --cached --stat`으로 스테이징된 파일 목록을 사용자에게 보여주고 확인받는다. **사용자 승인 없이 `git commit`을 실행하지 않는다.**
+
+- 작업과 무관한 파일이 포함되어 있으면 `git restore --staged <파일명>`으로 제외한다
+- 테스트 설정, 디버깅 코드, 다른 기능 수정 등이 섞여 있으면 사용자에게 알리고 제외 여부를 확인한다
+
+```bash
 git commit -m "$(cat <<'EOF'
 <Type>: <subject>
 
@@ -115,6 +125,6 @@ EOF
 
 ## 주의사항
 - `.env`, 인증키, 비밀번호 등 민감 정보 커밋 금지
-- 관련 없는 변경사항은 별도 커밋으로 분리
+- **작업과 무관한 변경사항은 절대 스테이징/커밋하지 않는다** (테스트 설정 변경, 디버깅 코드, 다른 기능 수정 등)
 - `git add -A` 또는 `git add .` 사용 주의 — 불필요한 파일 포함 가능성
 - `Co-Authored-By` 등 자동 생성 trailer를 커밋 메시지에 넣지 않는다
