@@ -52,11 +52,13 @@ git diff --stat
 - **동사 원형**으로 시작 (add, fix, update, remove, improve, resolve, integrate 등)
 - 마침표 없음
 - **구체적**으로 무엇을 했는지 명시
+- **50자 이내** 권장 (최대 72자)
 
 ### Body 규칙
 - 첫 줄(subject) 아래에 **빈 줄** 후 `- ` 항목으로 변경 상세를 나열
 - **영어**로 작성 (subject와 동일)
-- 각 항목은 **무엇을 왜 변경했는지** 구체적으로 기술 (파일명, 함수명, 증상 → 원인 → 수정 내용)
+- diff만으로는 알 수 없는 **맥락(왜, 어떤 문제, 어떤 판단)** 에 집중한다. 코드 레벨 설명(파일명, 함수명)은 diff에서 확인 가능하므로 반복하지 않는다
+- 한 줄은 **72자 이내**로 작성. 길면 줄바꿈하여 가독성을 유지한다
 - 단순 변경(한 가지만 수정)이라도 body를 작성하여 맥락을 남긴다
 - Merge 커밋의 경우 포함된 브랜치/변경사항, 충돌 해결 내역을 상세히 기록
 
@@ -64,13 +66,13 @@ git diff --stat
 ```
 Feat: add sub-compatible battery check on slot-fixed work allocation
 
-- warehouse.js: add isSubCompatible() check before slot assignment
-- work.js: filter out incompatible batteries in getAvailableBatteries()
+- Prevent incompatible batteries from being assigned to slot-fixed work
+- Filter candidates by sub-compatibility before slot assignment
 
 Fix: resolve sync pending deadlock on warehouse task cancellation
 
-- work-control.js: clear syncPending flag in cancel handler to prevent deadlock
-- warehouse.js: add finally block to reset pending state on error
+- Cancel handler was not clearing syncPending flag, causing dispose() to wait indefinitely
+- Add error recovery to reset pending state when task throws
 
 Merge: dev into taegab/feat/teams-webhook for trial operation
 
