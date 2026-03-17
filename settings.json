@@ -39,7 +39,12 @@
       "Bash(GIT_SEQUENCE_EDITOR=*)",
       "Bash(git merge:*)",
       "Bash(git stash:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(xargs -I {} basename {})",
+      "Bash(yarn build:*)",
+      "Bash(lsof -i :5173 -sTCP:LISTEN)",
+      "Bash(pkill -f \"vite\")",
+      "Bash(lsof -i :5173,:5174,:5175,:5176 -sTCP:LISTEN)"
     ],
     "additionalDirectories": [
       "/home/tayou/.claude",
