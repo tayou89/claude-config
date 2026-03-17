@@ -36,10 +36,14 @@
       "Bash(df *)",
       "Bash(stat *)",
       "Bash(cd * && *)",
-      "Bash(GIT_SEQUENCE_EDITOR=*)"
+      "Bash(GIT_SEQUENCE_EDITOR=*)",
+      "Bash(git merge:*)",
+      "Bash(git stash:*)",
+      "Bash(git pull:*)"
     ],
     "additionalDirectories": [
-      "/home/tayou/.claude"
+      "/home/tayou/.claude",
+      "/home/tayou/Desktop/codes/bss-core"
     ]
   },
   "hooks": {
