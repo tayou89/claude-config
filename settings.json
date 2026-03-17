@@ -39,7 +39,11 @@
       "Bash(GIT_SEQUENCE_EDITOR=*)",
       "Bash(git merge:*)",
       "Bash(git stash:*)",
-      "Bash(git pull:*)"
+      "Bash(git pull:*)",
+      "Bash(npm run:*)",
+      "Skill(git-commit)",
+      "Skill(git-commit:*)",
+      "Bash(git config:*)"
     ],
     "additionalDirectories": [
       "/home/tayou/.claude",
