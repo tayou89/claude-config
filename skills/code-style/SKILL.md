@@ -449,16 +449,41 @@ this.broadcastStatus('agv', agvId, status);
 
 ```
 // ✅ Good
-import Logger from '../util/logger';
+import { Logger } from '../util/logger';
 import { CommHandler } from '../driver/common/types';
-export default Door;
-export { CommHandler, CommResponse };
 
 // ❌ Bad
 const Logger = require('../util/logger');
 import Logger = require('../util/logger');
 module.exports = Door;
 export = Door;
+```
+
+### named export 사용 (default export 금지)
+
+`export default`를 사용하지 않는다. 항상 **named export** (`export { }` 또는 `export class/function/const`)를 사용한다.
+
+- import 시 이름이 강제되어 오타를 컴파일 타임에 잡을 수 있다
+- IDE 자동완성/리팩터링이 정확하게 동작한다
+- 한 파일에서 여러 개 export할 때 일관적이다
+
+```
+// ✅ Good — named export
+export class Door extends ThingExt<DoorTags> { }
+export { Door };
+export { CommHandler, CommResponse };
+
+// ✅ Good — import 시 이름 강제
+import { Door } from '../equipment/door';
+import { CommHandler } from '../driver/common/types';
+
+// ❌ Bad — default export
+export default Door;
+export default class Door { }
+
+// ❌ Bad — import 시 아무 이름 가능 (오타/혼란)
+import Door from '../equipment/door';
+import Foo from '../equipment/door';     // 이것도 됨
 ```
 
 ### 타입 캐스팅 최소화
