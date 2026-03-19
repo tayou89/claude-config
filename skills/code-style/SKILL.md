@@ -216,7 +216,35 @@ const { consumerTag } = await this._channel.consume(this._queueName, (msg) => {
 
 ## try-catch 범위
 
-특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다.
+특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다. **동일한 에러 처리를 하는 try-catch를 중첩하지 않는다.**
+
+```
+// ✅ Good — 하나의 try-catch로 충분
+write = async (addr, values, type, callback) => {
+    try {
+        // ... 전처리 + await ...
+        await writePromise;
+        callback({ cmd, timeStamp });
+    } catch (error) {
+        callback(undefined, error.message);
+    }
+};
+
+// ❌ Bad — 동일한 에러 처리를 하는 중복 try-catch
+write = async (addr, values, type, callback) => {
+    try {
+        // ... 전처리 ...
+        try {
+            await writePromise;
+            callback({ cmd, timeStamp });
+        } catch (error) {
+            callback(undefined, error.message);  // 바깥과 동일
+        }
+    } catch (error) {
+        callback(undefined, error.message);      // 안쪽과 동일
+    }
+};
+```
 
 ## 약어 사용 자제
 
