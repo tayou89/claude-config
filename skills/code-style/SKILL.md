@@ -486,6 +486,18 @@ import Door from '../equipment/door';
 import Foo from '../equipment/door';     // 이것도 됨
 ```
 
+### import * 금지
+
+`import * as X from '...'`를 사용하지 않는다. 필요한 것만 named import한다. 모듈 전체가 필요한 경우는 모듈 구조를 재설계한다.
+
+```
+// ✅ Good
+import { UDP as FEnetUDP, TCP as FEnetTCP } from './fenet';
+
+// ❌ Bad
+import * as FEnet from './fenet';
+```
+
 ### 타입 캐스팅 최소화
 
 **`as unknown as` (이중 캐스팅) 금지.** 타입이 맞지 않으면 인터페이스/제네릭으로 타입 설계를 수정한다.
