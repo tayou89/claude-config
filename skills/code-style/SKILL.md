@@ -443,6 +443,96 @@ this.broadcastStatus('agv', agvId, status);
 
 ## TypeScript 규칙
 
+### ESModule 문법 사용
+
+`require()` / `module.exports` 대신 `import` / `export`를 사용한다. tsc가 CommonJS로 컴파일하므로 런타임 호환성에 문제없다.
+
+```
+// ✅ Good
+import Logger from '../util/logger';
+import { CommHandler } from '../driver/common/types';
+export default Door;
+export { CommHandler, CommResponse };
+
+// ❌ Bad
+const Logger = require('../util/logger');
+import Logger = require('../util/logger');
+module.exports = Door;
+export = Door;
+```
+
+### 타입 캐스팅 최소화
+
+**`as unknown as` (이중 캐스팅) 금지.** 타입이 맞지 않으면 인터페이스/제네릭으로 타입 설계를 수정한다.
+
+`as Type` (단일 캐스팅)은 외부 라이브러리 경계, JSON 파싱 등 불가피한 경우에만 허용하고, 비즈니스 로직에서는 사용하지 않는다.
+
+```
+// ✅ Good — 인터페이스로 해결
+class FEnet implements CommHandler { ... }
+const driver = driverFactory.get('fenet');  // CommHandler 타입 반환
+
+// ✅ Good — 제네릭으로 해결
+const closed = door.getTag('stat.closed');  // 자동 추론
+
+// ❌ Bad — 이중 캐스팅
+driver.ref as unknown as CommHandler
+
+// ❌ Bad — 비즈니스 로직에서 단일 캐스팅
+const closed = door.getTag('stat.closed') as number;
+```
+
+### 제네릭 클래스 활용
+
+공통 베이스 클래스는 **제네릭으로 설계**하여 하위 클래스에서 구체 타입을 지정한다. 호출 측에서 매번 타입을 지정하지 않아도 되도록 한다.
+
+```
+// ✅ Good — 클래스 제네릭 + FlattenKeys로 dot notation 지원
+class Thing<TTags extends object> {
+    getTag(): TTags | undefined;
+    getTag<K extends FlattenKeys<TTags>>(tagName: K): DeepValue<TTags, K> | undefined;
+}
+
+class Door extends ThingExt<DoorTags> { }
+
+interface DoorTags {
+    stat: { closed: number; opened: number; loopSensor: number };
+    cmd: { enable: number; open: number; close: number };
+}
+
+// 사용: 타입 자동 추론, 오타 컴파일 타임 검출
+const closed = door.getTag('stat.closed');   // number — 자동 추론
+const tags = door.getTag();                   // DoorTags — 자동 추론
+door.getTag('stat.closd');                    // ← 컴파일 에러! 오타 검출
+
+// ❌ Bad — 메서드 제네릭 (매번 타입 지정)
+const closed = door.getTag<number>('stat.closed');
+```
+
+### 공통 인터페이스 정의
+
+여러 클래스가 동일한 메서드를 가지면 **공통 인터페이스를 정의하고 implements** 한다. 팩토리/컨테이너에서 반환할 때 캐스팅이 불필요해진다.
+
+```
+// ✅ Good — 인터페이스 implements
+interface CommHandler {
+    write(...): void;
+    read(...): void;
+    isConnected(): boolean;
+    close(): void;
+}
+
+class FEnet extends FrameBuilder implements CommHandler { ... }
+class Modbus implements CommHandler { ... }
+
+// 팩토리에서 캐스팅 없이 반환
+get(name: string): { id: string; ref: CommHandler } | undefined
+
+// ❌ Bad — 인터페이스 없이 캐스팅
+get(name: string): { id: string; ref: Record<string, unknown> }
+// 사용 시: driver.ref as unknown as CommHandler
+```
+
 ### any 금지
 
 `any` 타입을 사용하지 않는다. 타입을 모르는 경우 구체적인 타입을 정의하거나, 외부 경계에서만 `unknown`을 사용한다.
