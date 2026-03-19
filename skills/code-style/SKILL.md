@@ -329,3 +329,254 @@ setServo = (setValue, callback) => {
     });
 };
 ```
+
+## 주석 최소화 + 명시적 네이밍
+
+코드에 **불필요한 주석을 넣지 않는다**. 대신 변수명, 함수명, 상수명을 명시적으로 지어 주석 없이도 의미가 드러나도록 한다.
+
+- 코드가 "무엇을 하는지" 설명하는 주석은 넣지 않는다 — 네이밍으로 해결한다
+- "왜 이렇게 했는지" 설명이 필요한 경우에만 주석을 허용한다
+- 섹션 구분용 주석(`// === 유틸 ===`, `// 작업`, `// AGV` 등)은 넣지 않는다
+
+```
+// ✅ Good — 이름만으로 의미 전달
+const LONG_PRESS_DURATION = 500;
+const batteryStatusColors: Record<BatteryStatus, string> = { ... };
+
+// ✅ Good — "왜"를 설명하는 주석 (허용)
+// 크레인이 동작 중일 때 슬롯 이동을 차단해야 충돌을 방지할 수 있음
+if (crane.isMoving) { ... }
+
+// ❌ Bad — 코드를 그대로 반복하는 주석
+// 배터리 상태 색상 매핑
+const batteryStatusColors = { ... };
+
+// ❌ Bad — 섹션 구분 주석
+// === 유틸 함수 ===
+// 작업
+// AGV
+```
+
+## 문자열 리터럴 상수화
+
+코드 내에서 **반복되거나 의미를 가진 문자열 리터럴은 `const` 상수로 정의**한다. 함수 인자, 이벤트 타입, 식별자 등에 문자열을 직접 넣지 않는다.
+
+```
+// ✅ Good — 상수로 정의 후 사용
+const BROADCAST_TYPE = {
+    AGV: 'agv',
+    WAREHOUSE: 'warehouse',
+    CHARGER: 'charger',
+};
+
+this.broadcastStatus(BROADCAST_TYPE.AGV, agvId, status);
+
+// ❌ Bad — 문자열 리터럴 직접 사용
+this.broadcastStatus('agv', agvId, status);
+```
+
+## TypeScript 규칙
+
+### any 금지
+
+`any` 타입을 사용하지 않는다. 타입을 모르는 경우 구체적인 타입을 정의하거나, 외부 경계에서만 `unknown`을 사용한다.
+
+```
+// ✅ Good
+function parseMessage(raw: unknown): ScadaResponse {
+    const data = raw as Record<string, unknown>;
+    // 타입 가드로 좁히기
+}
+
+// ❌ Bad
+function parseMessage(raw: any): any { }
+```
+
+### unknown 사용 범위
+
+`unknown`은 **외부 경계에서만** 허용한다. 외부 경계란 하드웨어에서 읽은 raw 데이터, WebSocket 수신 메시지, JSON.parse 결과 등 런타임에 타입을 보장할 수 없는 지점을 말한다. 내부 코드 간 전달(함수 파라미터, 반환값, 스토어 상태 등)에는 반드시 구체적 타입을 사용한다.
+
+```
+// ✅ Good — 외부 경계
+ws.onmessage = (event: MessageEvent) => {
+    const data: unknown = JSON.parse(event.data);
+    if (isStatusBatch(data)) { /* 타입이 좁혀짐 */ }
+};
+
+// ✅ Good — 내부 코드
+function processWork(data: WorkStatus): void { }
+
+// ❌ Bad — 내부 코드에 unknown
+function processWork(data: unknown): void { }
+```
+
+### interface vs type
+
+**객체 형태는 `interface`**, 유니온/인터섹션/유틸리티 타입은 **`type`**으로 정의한다.
+
+```
+// ✅ Good — 객체 형태는 interface
+interface AgvStatus {
+    tags: AgvTags;
+    params: AgvStatusParams;
+}
+
+// ✅ Good — 유니온/유틸리티는 type
+type DeviceType = 'agv' | 'charger' | 'door';
+type Nullable<T> = T | null;
+
+// ❌ Bad — 객체 형태를 type으로
+type AgvStatus = {
+    tags: AgvTags;
+    params: AgvStatusParams;
+};
+```
+
+### enum vs const object
+
+TypeScript `enum`을 사용하지 않는다. **`as const` 객체**를 사용한다.
+
+```
+// ✅ Good
+const DEVICE = {
+    AGV: 'agv',
+    CHARGER: 'charger',
+} as const;
+
+type DeviceType = (typeof DEVICE)[keyof typeof DEVICE];
+
+// ❌ Bad
+enum Device {
+    AGV = 'agv',
+    CHARGER = 'charger',
+}
+```
+
+### 함수 스타일
+
+- **클래스 메서드**: arrow function (`=`) 사용 (this 바인딩 보장, eventBus 콜백 전달 시 안전)
+- **모듈 레벨 유틸리티**: function declaration 사용
+
+```
+// ✅ Good — 클래스 메서드: arrow
+class Work {
+    alloc = (plateNo: string): void => { };
+}
+
+// ✅ Good — 모듈 레벨: function
+function parseTag<T>(path: string): T { }
+
+// ❌ Bad — 클래스 메서드에 function
+class Work {
+    alloc(plateNo: string): void { }  // eventBus 콜백 시 this 유실 위험
+}
+```
+
+### null vs undefined
+
+**`undefined`를 기본으로** 사용한다. optional 파라미터(`param?: Type`)와 자연스럽게 호환된다. `null`은 **"의도적으로 비어있음"을 명시**할 때만 사용한다 (예: API 응답에서 데이터 없음).
+
+```
+// ✅ Good — undefined 기본
+interface ScadaState {
+    agv?: AgvStatusMap;          // 아직 수신 안 됨
+}
+
+// ✅ Good — null은 명시적 빈 값
+interface ScadaResponse<T> {
+    data: T | null;              // 서버가 "데이터 없음"을 명시적으로 응답
+}
+
+// ❌ Bad — 내부 상태에 null 남용
+interface ScadaState {
+    agv: AgvStatusMap | null;    // undefined면 충분
+}
+```
+
+### 타입 파일 위치
+
+- **여러 파일에서 공유하는 타입**: `types/` 폴더에 정의 (장비 데이터, 이벤트 타입, API 타입 등)
+- **해당 파일에서만 사용하는 내부 타입**: 파일 상단에 인라인 정의
+
+```
+// ✅ Good — 공유 타입: types/ 폴더
+// types/device/agv.ts
+export interface AgvStatus { ... }
+
+// ✅ Good — 내부 전용: 인라인
+// controller/work.ts
+interface AllocLock {
+    [workplaceId: number]: boolean;
+}
+class Work { ... }
+```
+
+### 반환 타입 명시
+
+함수/메서드의 반환 타입을 명시한다. 타입 추론에 의존하지 않는다.
+
+```
+// ✅ Good
+isConnected = (): boolean => {
+    return this._commStatus.connected;
+};
+
+getStatus = (): WorkStatus => {
+    return { waiting: this._section.waiting, allocated: this._section.allocated };
+};
+
+// ❌ Bad — 반환 타입 생략
+isConnected = () => {
+    return this._commStatus.connected;
+};
+```
+
+## 중복 코드 최소화
+
+동일한 코드가 반복되면 **공통 위치로 추출**한다. switch-case에서 모든 case가 동일한 결과를 반환하면 switch 밖으로 빼고, case별로 결과가 다르면 각 case에서 설정한다.
+
+```
+// ✅ Good — 모든 case가 동일한 결과: switch 밖에서 한 번만
+try {
+    switch (command) {
+        case CMD.A: {
+            doA();
+            break;
+        }
+        case CMD.B: {
+            doB();
+            break;
+        }
+    }
+    resultData = { success: true };
+} catch (error) {
+    resultData = error;
+}
+
+// ✅ Good — case별로 결과가 다름: 각 case에서 설정
+switch (command) {
+    case CMD.GET_STATUS: {
+        resultData = this.getStatus();
+        break;
+    }
+    case CMD.ALLOC: {
+        await this.alloc();
+        resultData = { success: true };
+        break;
+    }
+}
+
+// ❌ Bad — 모든 case에 동일한 resultData 반복
+switch (command) {
+    case CMD.A: {
+        doA();
+        resultData = { success: true };
+        break;
+    }
+    case CMD.B: {
+        doB();
+        resultData = { success: true };
+        break;
+    }
+}
+```
