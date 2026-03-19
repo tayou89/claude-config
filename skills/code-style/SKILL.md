@@ -162,6 +162,44 @@ doOther();
 
 `await`를 사용하지 않는 함수에는 `async`를 붙이지 않는다.
 
+## const 우선 사용
+
+변수가 재할당되지 않으면 반드시 `const`를 사용한다. `let`은 실제로 재할당되는 경우에만 사용한다.
+
+```
+// ✅ Good
+const timeStamp = new Date().getTime();
+const { area, start } = this.getArea(addr);
+
+// ❌ Bad — 재할당 없는데 let 사용
+let timeStamp = new Date().getTime();
+```
+
+## Promise 체인 대신 await 사용
+
+`.then().catch()` 체인 대신 `async/await` + `try/catch`를 사용한다.
+
+```
+// ✅ Good
+try {
+    const result = await reader(start, length);
+    const payload = result.response.body.valuesAsBuffer;
+
+    callback({ cmd, timeStamp, payload });
+} catch (error) {
+    callback(undefined, (error as Error).message);
+}
+
+// ❌ Bad
+reader(start, length)
+    .then((result) => {
+        callback({ cmd, timeStamp, result.response.body.valuesAsBuffer });
+    })
+    .catch((error) => {
+        callback(undefined, error.message);
+    });
+```
+
 ## 인라인 콜백 함수 분리
 
 매개변수로 전달되는 **콜백 함수가 길어지면**(대략 5줄 이상) 별도의 메서드/함수로 분리하여 호출한다.
