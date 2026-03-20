@@ -498,6 +498,29 @@ import { UDP as FEnetUDP, TCP as FEnetTCP } from './fenet';
 import * as FEnet from './fenet';
 ```
 
+### 타입은 항상 안전하고 정확한 쪽으로
+
+타입 관련 선택이 필요할 때는 항상 **더 안전하고 더 정확한 쪽**을 택한다. 편의를 위해 타입 안전성을 포기하지 않는다.
+
+- **`as const` 유지**: 불변 상수 데이터(PLC 맵, 설정값 등)에는 `as const`를 사용한다. `readonly` 호환 문제가 생기면 `as const`를 제거하지 않고 **받는 쪽 인터페이스에서 `readonly`를 수용**하도록 수정한다. 내부에서 배열을 변형하지 않는다면 파라미터 타입을 `readonly T[]`로 선언한다.
+- **`readonly` 전파**: 변형하지 않는 배열/객체 파라미터는 `readonly`로 선언하여 불변성을 타입 시스템으로 보장한다.
+- **타입 좁히기 우선**: 캐스팅(`as`)보다 타입 가드, 제네릭, 인터페이스 설계를 우선한다.
+
+```
+// ✅ Good — as const 유지, 받는 쪽에서 readonly 수용
+const MAP = { model: [...] } as const;
+
+addWriteBlock = (block: { model: readonly WriteModel[] }): void => {
+    block.model.forEach(item => { ... });  // 순회만 — readonly OK
+};
+
+// ❌ Bad — 호환 안 된다고 as const 제거
+const MAP = { model: [...] };  // 실수로 MAP.model.push(...) 해도 안 잡힘
+
+// ❌ Bad — 호환 안 된다고 캐스팅으로 우회
+this.addWriteBlock(MAP as unknown as WriteBlockConfig);
+```
+
 ### 타입 캐스팅 최소화
 
 **`as unknown as` (이중 캐스팅) 금지.** 타입이 맞지 않으면 인터페이스/제네릭으로 타입 설계를 수정한다.

@@ -63,6 +63,10 @@ git config --global core.excludesfile 2>/dev/null || git config --global core.ex
 + 변경 코드
 \`\`\`
 
+### Architecture (구조 변경이 있는 경우)
+모듈 관계, 데이터 흐름, 상속 구조 등을 ASCII 도식으로 표현한다.
+단순 파일 수정만 있는 경우 생략 가능.
+
 ### Files to Modify / Create
 - `path/to/file.ts` — 변경 이유
 - ...
