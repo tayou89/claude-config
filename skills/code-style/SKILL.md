@@ -266,6 +266,22 @@ write = async (addr, values, type, callback) => {
 };
 ```
 
+## 에러 메시지 작성 원칙
+
+에러 메시지는 **일반인도 이해할 수 있는 사용자 친화적 표현**으로 작성한다. 내부 기술 용어(태그, 레지스터, 인스턴스 등)를 피하고, **무엇이 어떤 상태인지** 사람이 읽을 수 있는 문장으로 쓴다.
+
+```
+// ✅ Good — 사용자 친화적
+throw new Error('창고 제어 값을 확인할 수 없습니다.');
+throw new Error('AGV 제어 상태를 읽을 수 없습니다.');
+throw new Error('충전기 제어 명령을 확인할 수 없습니다.');
+
+// ❌ Bad — 기술 용어, 내부 구현 노출
+throw new Error('warehouse.control 태그 없음');
+throw new Error('getTag returned undefined');
+throw new Error('agv.control is null');
+```
+
 ## 약어 사용 자제
 
 변수명, 함수명 등에 **약어(abbreviation)를 가능한 사용하지 않는다**. 이름이 너무 길어지지 않는 한 전체 단어를 사용한다.
