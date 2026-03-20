@@ -25,28 +25,48 @@ if (condition) return value;
 if (condition) { return value; }
 ```
 
-## 조기 void return 금지 — if-else 사용
+## 조기 void return / guard throw 금지 — if-else 또는 check 함수 사용
 
-특정 값을 반환하는 early return(`return false`, `return 0` 등)은 허용하되, **void return으로 함수를 빠져나가는 guard clause는 사용하지 않는다**. 대신 if-else 구조로 처리한다.
+특정 값을 반환하는 early return(`return false`, `return 0` 등)은 허용하되, **void return이나 guard throw로 함수를 빠져나가는 패턴은 사용하지 않는다**.
+
+- **단일 조건**: if-else 구조로 처리한다
+- **복수 조건**: 별도 check 함수로 분리한다 (전제조건 검증 패턴 참고)
 
 ```
-// ✅ Good
-subscribe = async (routingKey) => {
-    if (this._channel) {
-        // 메인 로직
-    } else {
-        this._logger.warn('채널 없음');
+// ✅ Good — 단일 조건: if-else
+const data = this.getTag('warehouse.control');
+
+if (data) {
+    const { cmd } = data;
+    // 메인 로직
+} else {
+    throw new Error('warehouse.control 태그 없음');
+}
+
+// ✅ Good — 복수 조건: check 함수로 분리
+checkWarehouseControl = (): void => {
+    if (!this.getTag('warehouse.control')) {
+        throw new Error('warehouse.control 태그 없음');
+    }
+    if (!this.isConnected()) {
+        throw new Error('연결 끊김');
     }
 };
 
-// ❌ Bad
-subscribe = async (routingKey) => {
-    if (!this._channel) {
-        this._logger.warn('채널 없음');
-        return;
-    }
-    // 메인 로직
-};
+// ❌ Bad — guard throw
+const data = this.getTag('warehouse.control');
+
+if (!data) {
+    throw new Error('warehouse.control 태그 없음');
+}
+const { cmd } = data;
+
+// ❌ Bad — guard return
+if (!this._channel) {
+    this._logger.warn('채널 없음');
+    return;
+}
+// 메인 로직
 ```
 
 ## 긍정 조건 우선
