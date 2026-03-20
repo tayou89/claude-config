@@ -593,37 +593,33 @@ get(name: string): { id: string; ref: Record<string, unknown> }
 // 사용 시: driver.ref as unknown as CommHandler
 ```
 
-### any 금지
+### any / unknown 사용 원칙
 
-`any` 타입을 사용하지 않는다. 타입을 모르는 경우 구체적인 타입을 정의하거나, 외부 경계에서만 `unknown`을 사용한다.
+`any`와 `unknown`은 모두 **구체적 타입을 찾는 노력을 먼저** 한 뒤에만 고려한다. 실제 데이터 흐름을 추적하여 정확한 타입을 정의할 수 있다면 반드시 그렇게 한다.
 
-```
-// ✅ Good
-function parseMessage(raw: unknown): ScadaResponse {
-    const data = raw as Record<string, unknown>;
-    // 타입 가드로 좁히기
-}
+**`any` — 금지.** 어떤 경우에도 사용하지 않는다.
 
-// ❌ Bad
-function parseMessage(raw: any): any { }
-```
+**`unknown` — 외부 경계에서만 허용, 사용 전 사용자 확인 필수.** `unknown`을 사용해야 할 것 같은 상황이 오면:
+1. 먼저 실제 호출/데이터 흐름을 추적하여 구체적 타입을 찾는다
+2. 구체적 타입이 정말 불가능한 경우에만 사용자에게 근거와 함께 확인받는다
+3. 승인 없이 `unknown`을 작성하지 않는다
 
-### unknown 사용 범위
-
-`unknown`은 **외부 경계에서만** 허용한다. 외부 경계란 하드웨어에서 읽은 raw 데이터, WebSocket 수신 메시지, JSON.parse 결과 등 런타임에 타입을 보장할 수 없는 지점을 말한다. 내부 코드 간 전달(함수 파라미터, 반환값, 스토어 상태 등)에는 반드시 구체적 타입을 사용한다.
+외부 경계란 하드웨어에서 읽은 raw 데이터, WebSocket 수신 메시지, JSON.parse 결과 등 런타임에 타입을 보장할 수 없는 지점을 말한다. 내부 코드 간 전달(함수 파라미터, 반환값, 콜백 등)에는 반드시 구체적 타입을 사용한다.
 
 ```
-// ✅ Good — 외부 경계
+// ✅ Good — 실제 호출 흐름을 추적하여 정확한 타입 정의
+// cb(eventName, error) 로 호출되므로 정확한 시그니처 사용
+on = (eventName: string, conditions: ..., cb?: (topic: string, error?: Error) => void): void => {
+
+// ✅ Good — 외부 경계에서만 unknown 허용
 ws.onmessage = (event: MessageEvent) => {
     const data: unknown = JSON.parse(event.data);
     if (isStatusBatch(data)) { /* 타입이 좁혀짐 */ }
 };
 
-// ✅ Good — 내부 코드
-function processWork(data: WorkStatus): void { }
-
-// ❌ Bad — 내부 코드에 unknown
-function processWork(data: unknown): void { }
+// ❌ Bad — 추적하면 구체 타입을 알 수 있는데 unknown/any 사용
+on = (eventName: string, conditions: ..., cb?: (...args: unknown[]) => void): void => {
+on = (eventName: string, conditions: ..., cb?: (...args: any[]) => void): void => {
 ```
 
 ### interface vs type
