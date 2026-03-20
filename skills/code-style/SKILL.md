@@ -506,6 +506,32 @@ import * as FEnet from './fenet';
 - **`readonly` 전파**: 변형하지 않는 배열/객체 파라미터는 `readonly`로 선언하여 불변성을 타입 시스템으로 보장한다.
 - **타입 좁히기 우선**: 캐스팅(`as`)보다 타입 가드, 제네릭, 인터페이스 설계를 우선한다.
 
+### 동일 카테고리는 동일 수준으로 통일
+
+같은 역할/카테고리에 속하는 모듈들은 **타입 정의 수준, 패턴, 구조를 통일**한다. 한 모듈만 다른 방식으로 하지 않는다.
+
+- **타입 정의 수준**: 동일 카테고리의 모듈이 `Record<string, unknown>`을 쓰면 전부 그렇게 하고, 구체 인터페이스를 쓰면 전부 구체적으로 한다. 한 모듈만 구체적이고 나머지가 느슨하면 안 된다. 수준을 올리려면 전부 함께 올린다.
+- **네이밍 패턴**: 인터페이스명(`XxxConfig`, `XxxOptions`, `XxxTags`), 변수명, 메서드명이 같은 카테고리 내에서 일관되어야 한다.
+- **클래스 구조**: 같은 베이스 클래스를 상속하는 모듈들은 생성자 패턴, 초기화 흐름, dispose 패턴이 동일해야 한다.
+- **적용 범위**: equipment 장비 클래스, controller 컨트롤러, driver 드라이버 등 동일 디렉터리/역할의 모듈이 대상이다.
+
+변경 시 한 모듈만 바꾸면 불일치가 생길 수 있으므로, **같은 카테고리 전체에 영향을 주는 변경인지 확인**하고 필요하면 전부 함께 수정한다.
+
+```
+// ✅ Good — 전체 장비가 동일 수준
+// Door, Charger, PSD, Crane 모두 config: Record<string, unknown>
+interface DoorConfig { options: { driver: string; config: Record<string, unknown> } }
+interface CraneOptions { driver: string; config: Record<string, unknown> }
+
+// ✅ Good — 전체를 구체적으로 올린 경우
+interface DoorDriverConfig { host: string; port: number; ... }
+interface CraneDriverConfig { host: string; port: number; ... }
+
+// ❌ Bad — Crane만 구체적, 나머지는 느슨
+interface DoorConfig { options: { config: Record<string, unknown> } }
+interface CraneOptions { config: CraneConfig }  // 혼자만 구체적
+```
+
 ```
 // ✅ Good — as const 유지, 받는 쪽에서 readonly 수용
 const MAP = { model: [...] } as const;
