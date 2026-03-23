@@ -195,6 +195,26 @@ const { area, start } = this.getArea(addr);
 let timeStamp = new Date().getTime();
 ```
 
+## 반복 사용되는 리터럴 값은 상수로 정의
+
+코드 구조에서 의미를 가지는 문자열/숫자 리터럴이 **2곳 이상**에서 반복되면 상수로 정의하여 사용한다. 특히 객체 키 목록, 상태 코드, 설정 값 등 구조적 의미가 있는 값은 인라인 리터럴 대신 상수를 참조한다.
+
+```
+// ✅ Good — 구조적 키 목록을 상수로 정의
+const TASK_STEP_KEYS = ['precheck', 'request', 'postcheck'];
+
+for (const key of TASK_STEP_KEYS) {
+    this.resolveTaskDoneCallback(task[key]);
+}
+
+// ❌ Bad — 구조적 키를 인라인 리터럴로 반복 사용
+const stepKeys = ['precheck', 'request', 'postcheck'];
+
+for (const key of stepKeys) {
+    this.resolveTaskDoneCallback(task[key]);
+}
+```
+
 ## Promise 체인 대신 await 사용
 
 `.then().catch()` 체인 대신 `async/await` + `try/catch`를 사용한다.
