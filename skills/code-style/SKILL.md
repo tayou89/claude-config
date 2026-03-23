@@ -108,6 +108,24 @@ if (errorCode) {
 return '에러코드 없음';
 ```
 
+## 파일 상단 구조: import → 빈 줄 → 상수/변수
+
+파일 상단에서 `require`/`import` 블록과 그 아래의 상수/변수 선언 사이에는 **빈 줄 하나**를 넣어 구분한다.
+
+```
+// ✅ Good
+const EventEmitter = require('events');
+const { WORK_CONTROL_STATE } = require('../define/property');
+
+const INTERNAL_CONTROL_EVT = 'control.internal';
+const TASK_STEP_KEYS = { ... };
+
+// ❌ Bad — import와 상수 선언이 빈 줄 없이 붙어 있음
+const EventEmitter = require('events');
+const { WORK_CONTROL_STATE } = require('../define/property');
+const INTERNAL_CONTROL_EVT = 'control.internal';
+```
+
 ## 변수 선언 후 빈 줄
 
 변수 선언(`const`, `let`, `var`) 블록 다음에는 **항상 빈 줄 하나**를 넣어 분리한다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. 객체 리터럴(`{ ... }`)로 초기화하는 변수도 동일하게 적용한다. **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
