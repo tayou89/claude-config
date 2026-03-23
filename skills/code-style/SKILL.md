@@ -855,3 +855,45 @@ switch (command) {
     }
 }
 ```
+
+## 중복 로직 금지
+
+동일하거나 거의 동일한 로직이 **2곳 이상**에서 반복되면, 별도의 메서드/함수로 추출하여 재사용한다. 코드를 작성하거나 수정할 때 기존 코드베이스에 같은 패턴이 이미 존재하는지 확인하고, 있으면 해당 메서드를 호출한다.
+
+```
+// ✅ Good — 공통 로직을 메서드로 추출
+resolveTaskDoneCallback = (args) => {
+    if (args && args.length > 0) {
+        const lastArg = args[args.length - 1];
+
+        if (typeof lastArg === 'function' && lastArg.name === '_taskDone') {
+            lastArg();
+        }
+    }
+};
+
+// 호출부 A
+this.resolveTaskDoneCallback(option?.args);
+
+// 호출부 B
+this.resolveTaskDoneCallback(task.request?.args);
+
+// ❌ Bad — 같은 로직을 여러 곳에 인라인으로 반복
+// 호출부 A
+const args = option?.args;
+if (args && args.length > 0) {
+    const lastArg = args[args.length - 1];
+    if (typeof lastArg === 'function' && lastArg.name === '_taskDone') {
+        lastArg();
+    }
+}
+
+// 호출부 B (거의 동일한 코드 반복)
+const args = task.request?.args;
+if (args && args.length > 0) {
+    const lastArg = args[args.length - 1];
+    if (typeof lastArg === 'function' && lastArg.name === '_taskDone') {
+        lastArg();
+    }
+}
+```
