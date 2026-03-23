@@ -948,3 +948,24 @@ if (args && args.length > 0) {
     }
 }
 ```
+
+## 리소스 정리는 호출부가 아닌 소유자에서
+
+콜백 해제, 리스너 제거, 예약 취소 등 **리소스 정리 로직은 해당 리소스를 직접 관리하는 메서드 내부**에 둔다. 호출부에서 정리를 수행하면 다른 호출 경로에서 누락될 수 있다.
+
+```
+// ✅ Good — clearTask 내부에서 _taskDone 정리
+clearTask = () => {
+    this.resolveRemainingTaskDoneCallbacks();
+    this._tasks = [];
+    this.resetTaskCount();
+};
+
+// ❌ Bad — 호출부마다 개별적으로 정리 (다른 호출부에서 누락 위험)
+// dispose에서
+this.resolveRemainingTaskDoneCallbacks();
+this.clearTask();
+
+// 다른 곳에서 clearTask 호출 시 정리 누락 가능
+this.clearTask();  // _taskDone 미처리
+```
