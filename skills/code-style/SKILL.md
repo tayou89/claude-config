@@ -197,23 +197,27 @@ let timeStamp = new Date().getTime();
 
 ## 반복 사용되는 리터럴 값은 상수로 정의
 
-코드 구조에서 의미를 가지는 문자열/숫자 리터럴이 **2곳 이상**에서 반복되면 상수로 정의하여 사용한다. 특히 객체 키 목록, 상태 코드, 설정 값 등 구조적 의미가 있는 값은 인라인 리터럴 대신 상수를 참조한다.
+코드 구조에서 의미를 가지는 문자열/숫자 리터럴이 **2곳 이상**에서 반복되면 상수로 정의하여 사용한다. 특히 객체 키 목록, 상태 코드, 설정 값 등 구조적 의미가 있는 값은 인라인 리터럴 대신 상수를 참조한다. 상수는 기존 상수 정의 파일의 패턴(객체 형태 등)에 맞춰 정의한다.
 
 ```
-// ✅ Good — 구조적 키 목록을 상수로 정의
-const TASK_STEP_KEYS = ['precheck', 'request', 'postcheck'];
+// ✅ Good — 기존 패턴에 맞는 객체 형태로 상수 정의
+TASK_STEP_KEYS: {
+    PRECHECK: 'precheck',
+    REQUEST: 'request',
+    POSTCHECK: 'postcheck',
+},
 
-for (const key of TASK_STEP_KEYS) {
+for (const key of Object.values(TASK_STEP_KEYS)) {
     this.resolveTaskDoneCallback(task[key]);
 }
 
-// ❌ Bad — 구조적 키를 인라인 리터럴로 반복 사용
-const stepKeys = ['precheck', 'request', 'postcheck'];
-
-for (const key of stepKeys) {
-    this.resolveTaskDoneCallback(task[key]);
-}
+// ❌ Bad — 기존 패턴과 다른 배열 형태로 정의
+TASK_STEP_KEYS: ['precheck', 'request', 'postcheck'],
 ```
+
+## TypeScript 소스와 빌드 산출물
+
+`.ts` 파일과 대응하는 `.js` 파일이 함께 존재하면, `.js`는 빌드 산출물이다. **반드시 `.ts` 파일을 수정하고 빌드(`tsc`)하여 `.js`를 생성**한다. `.js`를 직접 수정하지 않는다. 수정 전에 대응하는 `.ts` 파일이 존재하는지 항상 확인한다.
 
 ## Promise 체인 대신 await 사용
 
