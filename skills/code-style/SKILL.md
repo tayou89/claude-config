@@ -128,16 +128,24 @@ const INTERNAL_CONTROL_EVT = 'control.internal';
 
 ## 변수 선언 후 빈 줄
 
-변수 선언(`const`, `let`, `var`) 블록 다음에는 **항상 빈 줄 하나**를 넣어 분리한다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. 객체 리터럴(`{ ... }`)로 초기화하는 변수도 동일하게 적용한다. **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
+변수 선언(`const`, `let`, `var`) 블록 다음에는 **항상 빈 줄 하나**를 넣어 분리한다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. **초기화 표현식의 형태(단순 값, 객체 리터럴, 함수 호출, 콜백 포함 여러 줄 등)에 관계없이 동일하게 적용한다.** **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
 
 ```
-// ✅ Good — 변수 선언 후 빈 줄
+// ✅ Good — 객체 리터럴 변수 선언 후 빈 줄
 const msg = {
     reqid_s: REQ.MOVE,
     param1: targetPos
 };
 
 await this.send(msg, callback);
+
+// ✅ Good — 콜백 포함 여러 줄 변수 선언 후 빈 줄
+const socket = net.createConnection(port, host, () => {
+    socket.setTimeout(0);
+    client.connect(connectionListener);
+});
+
+socket.setTimeout(20000);
 
 // ✅ Good — return 앞에도 빈 줄
 const state = this.getSocketState();
@@ -147,6 +155,13 @@ return !state || state === WebSocket.CLOSED;
 // ❌ Bad — 변수 선언 후 빈 줄 없음
 const state = this.getSocketState();
 return !state || state === WebSocket.CLOSED;
+
+// ❌ Bad — 여러 줄 변수 선언 후 빈 줄 없음
+const socket = net.createConnection(port, host, () => {
+    socket.setTimeout(0);
+    client.connect(connectionListener);
+});
+socket.setTimeout(20000);
 ```
 
 ## 메서드/함수 정의 사이 빈 줄
