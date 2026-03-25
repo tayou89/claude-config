@@ -59,6 +59,13 @@ push/rebase/merge 충돌 발생 시 `/resolve-conflict` skill을 따른다.
 - 변경이 참조하는 곳, 참조되는 곳 모두에서 정합성 유지 확인
 - **"이전에 논의해서 바꾸기로 한 것"이 최종 산출물에 이전 상태로 남아있으면 안 된다**
 
+## TypeScript 빌드 규칙
+
+TypeScript 전환이 부분적으로 진행 중인 프로젝트에서는 `.ts` 소스와 `.js` 빌드 산출물을 **모두 커밋**한다.
+
+- `.ts` 파일 수정 시 반드시 `tsc` 빌드 후 산출물(`.js`, `.js.map`, `tsconfig.tsbuildinfo`)을 함께 커밋한다.
+- `tsconfig.tsbuildinfo`도 함께 커밋한다 (incremental build 캐시, 다른 개발자의 빌드 시간 단축).
+
 ## Claude 설정 초기화
 
 세션 시작 시 반드시 `git -C ~/.claude pull`로 최신 규칙을 받아온다.
