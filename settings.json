@@ -189,7 +189,12 @@
       "Read(//c/dev/**)",
       "Skill(code-plan)",
       "Skill(code-plan:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(xargs ls:*)",
+      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick/reword/g''\" git rebase HEAD~2)",
+      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''1s/pick/reword/''\" git rebase HEAD~2)",
+      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''1s/pick/reword/''\" git rebase -i HEAD~2)",
+      "Bash(pm2 logs:*)"
     ],
     "additionalDirectories": [
       "/home/tayou/.claude",
