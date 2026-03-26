@@ -773,6 +773,36 @@ type AgvStatus = {
 };
 ```
 
+### 긴 타입 시그니처 분리
+
+인라인 함수 타입이나 파라미터 타입이 길어지면(대략 80자 이상) **`type` 별칭으로 분리**한다. 메서드 시그니처, 인터페이스 프로퍼티, 콜백 파라미터 등에 함수 타입이 인라인으로 길게 들어가면 가독성이 떨어진다.
+
+```
+// ✅ Good — 콜백 타입을 별칭으로 분리
+type EventHandler = (topic: string, error?: Error) => void;
+
+interface ChargerObject {
+    on(name: string, condition: string, handler: EventHandler): void;
+    off(name: string, condition: string, handler: EventHandler): void;
+}
+
+getAgvUpdateHandler = (agvId: number): EventHandler => {
+    return (topic: string, error?: Error): void => {
+        // ...
+    };
+};
+
+// ❌ Bad — 인라인 함수 타입이 너무 길어 가독성 저하
+interface ChargerObject {
+    on(name: string, condition: string, handler: (topic: string, error?: Error) => void): void;
+    off(name: string, condition: string, handler: (topic: string, error?: Error) => void): void;
+}
+
+getAgvUpdateHandler = (agvId: number): ((topic: string, error?: Error) => void) => (topic: string, error?: Error): void => {
+    // ...
+};
+```
+
 ### enum vs const object
 
 TypeScript `enum`을 사용하지 않는다. **`as const` 객체**를 사용한다.
