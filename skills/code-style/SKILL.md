@@ -108,6 +108,49 @@ if (errorCode) {
 return '에러코드 없음';
 ```
 
+## 불필요한 `return undefined` 금지
+
+함수 반환 타입에 `undefined`가 포함될 때, `else { return undefined; }` 또는 `else { return; }`처럼 **암묵적으로 undefined를 반환하는 것과 동일한 코드를 명시적으로 작성하지 않는다**. else 블록 자체를 생략한다.
+
+```
+// ✅ Good — else 생략, 암묵적 undefined 반환
+toString = (data: string | undefined): string | undefined => {
+    if (data) {
+        return data.toUpperCase();
+    }
+};
+
+// ❌ Bad — 불필요한 else + return undefined
+toString = (data: string | undefined): string | undefined => {
+    if (data) {
+        return data.toUpperCase();
+    } else {
+        return undefined;
+    }
+};
+```
+
+## truthy 체크 우선
+
+`!= undefined`, `!== undefined`, `!= null` 대신 **truthy 체크(`if (value)`)를 우선 사용**한다. 단, `0`, `''`, `false` 등 falsy 값이 유효한 값인 경우에만 명시적 비교(`!== undefined`)를 사용한다.
+
+```
+// ✅ Good — truthy 체크 (0, '', false가 유효하지 않은 경우)
+if (data) {
+    process(data);
+}
+
+// ✅ Good — 명시적 비교 (0이 유효한 값인 경우)
+if (count !== undefined) {
+    setCount(count);  // count가 0이어도 유효
+}
+
+// ❌ Bad — 불필요한 명시적 비교
+if (data != undefined) {
+    process(data);  // data가 0이나 ''일 가능성이 없는데 명시적 비교
+}
+```
+
 ## 파일 상단 구조: import → 빈 줄 → 상수/변수
 
 파일 상단에서 `require`/`import` 블록과 그 아래의 상수/변수 선언 사이에는 **빈 줄 하나**를 넣어 구분한다.
