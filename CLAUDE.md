@@ -64,6 +64,7 @@ push/rebase/merge 충돌 발생 시 `/resolve-conflict` skill을 따른다.
 TypeScript 전환이 부분적으로 진행 중인 프로젝트에서는 `.ts` 소스와 `.js` 빌드 산출물을 **모두 커밋**한다.
 
 - `.ts` 파일 수정 시 반드시 `tsc` 빌드 후 산출물(`.js`, `.js.map`, `tsconfig.tsbuildinfo`)을 함께 커밋한다.
+- `.ts` 소스 파일과 그 빌드 산출물(`.js`, `.js.map`)은 **반드시 같은 커밋**에 포함한다. 소스와 빌드를 별도 커밋으로 분리하지 않는다.
 - `tsconfig.tsbuildinfo`도 함께 커밋한다 (incremental build 캐시, 다른 개발자의 빌드 시간 단축).
 
 ## Claude 설정 초기화
