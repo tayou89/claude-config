@@ -794,6 +794,40 @@ on = (eventName: string, conditions: ..., cb?: (...args: unknown[]) => void): vo
 on = (eventName: string, conditions: ..., cb?: (...args: any[]) => void): void => {
 ```
 
+### 타입 억제 주석 금지
+
+`@ts-expect-error`, `@ts-ignore`, `eslint-disable` 주석을 사용하지 않는다. 타입 에러가 발생하면 **타입을 올바르게 수정**하여 해결한다. 주석으로 에러를 숨기는 것은 근본 원인을 방치하는 것이다.
+
+```
+// ❌ Bad — 주석으로 에러 숨김
+// @ts-expect-error 타입 불일치
+await this.work.alloc(plateNo, workplaceId, this.workMode);
+
+// ❌ Bad
+// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
+type StepFunction = Function;
+
+// ✅ Good — 타입을 올바르게 수정
+type StepFunction = (option: StepOption) => Promise<void>;
+```
+
+### `Function` 타입 금지
+
+`Function` 타입을 사용하지 않는다. **구체적인 함수 시그니처**를 정의한다.
+
+```
+// ✅ Good
+type TaskCallback = (result: boolean) => void;
+interface StepOption {
+    func: TaskCallback;
+}
+
+// ❌ Bad
+interface StepOption {
+    func: Function;
+}
+```
+
 ### interface vs type
 
 **객체 형태는 `interface`**, 유니온/인터섹션/유틸리티 타입은 **`type`**으로 정의한다.
