@@ -244,6 +244,52 @@ on = (eventName: string, conditions: ..., cb?: (...args: unknown[]) => void): vo
 on = (eventName: string, conditions: ..., cb?: (...args: any[]) => void): void => {
 ```
 
+## `Record<string, unknown>` 최소화 원칙
+
+`Record<string, unknown>`은 `unknown`의 변형이다. **실제 구조를 알 수 있는 곳에서는 구체적 인터페이스로 대체**한다. `Record<string, unknown>`을 작성하기 전에 반드시 아래 체크리스트를 확인한다.
+
+**체크리스트:**
+1. **실제 데이터가 어떤 필드를 가지는지** 호출 흐름을 추적한다
+2. 필드를 알 수 있으면 **인터페이스로 정의**한다
+3. 중첩 구조(트리)는 **재귀 타입**으로 정의한다
+4. 외부 라이브러리 옵션은 **자주 쓰이는 필드를 인터페이스로 정의**하고 필요 시 `[key: string]: unknown` 인덱스로 확장성을 허용한다
+
+**허용되는 경우:**
+- 외부 API 응답의 `metadata` 필드 (서버에서 임의 구조 반환)
+- 외부 라이브러리 타입 선언에서 문서화되지 않은 옵션
+- 제네릭 제약 (`TTags extends Record<string, unknown>`)
+
+```
+// ✅ Good — 구체적 인터페이스
+interface WriteBlockLeaf {
+    addr: string;
+    type: string;
+    options?: MemoryModelOptions;
+}
+type WriteBlockTree = Record<string, WriteBlockTree | WriteBlockLeaf>;
+
+// ✅ Good — 외부 라이브러리 옵션 (알려진 필드 + 확장)
+interface ParserStringOptions {
+    length: number | string;
+    encoding?: string;
+    padd?: string;
+    [key: string]: unknown;
+}
+
+// ✅ Good — 외부 API 메타데이터 (구조 불확정)
+interface ChargeData {
+    soc: number;
+    metadata: Record<string, unknown>;
+}
+
+// ❌ Bad — 내부 구조를 알 수 있는데 Record<string, unknown> 사용
+private _writeBlocks: Record<string, unknown>;
+write(addr: string, ..., options?: Record<string, unknown>): void;
+
+// ❌ Bad — 인터페이스 파라미터에 Record<string, unknown>
+type SocketManagerConstructor = new (options: Record<string, unknown>) => SocketManager;
+```
+
 ## 타입 억제 주석 금지
 
 `@ts-expect-error`, `@ts-ignore`, `eslint-disable` 주석을 사용하지 않는다. 타입 에러가 발생하면 **타입을 올바르게 수정**하여 해결한다. 주석으로 에러를 숨기는 것은 근본 원인을 방치하는 것이다.
