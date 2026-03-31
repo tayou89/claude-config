@@ -882,7 +882,7 @@ type AgvStatus = {
 
 ### 긴 타입 시그니처 분리
 
-인라인 함수 타입이나 파라미터 타입이 길어지면(대략 80자 이상) **`type` 별칭으로 분리**한다. 메서드 시그니처, 인터페이스 프로퍼티, 콜백 파라미터 등에 함수 타입이 인라인으로 길게 들어가면 가독성이 떨어진다.
+인라인 타입(함수 타입, 객체 타입, 유니온 타입 등)이 길어지면 **`type` 별칭 또는 `interface`로 분리**한다. 파라미터, 반환 타입, 프로퍼티 등에 인라인으로 긴 타입이 들어가면 가독성이 떨어진다.
 
 ```
 // ✅ Good — 콜백 타입을 별칭으로 분리
@@ -890,24 +890,26 @@ type EventHandler = (topic: string, error?: Error) => void;
 
 interface ChargerObject {
     on(name: string, condition: string, handler: EventHandler): void;
-    off(name: string, condition: string, handler: EventHandler): void;
 }
 
-getAgvUpdateHandler = (agvId: number): EventHandler => {
-    return (topic: string, error?: Error): void => {
-        // ...
-    };
-};
+// ✅ Good — 인라인 객체 타입을 interface로 분리
+interface TagResponse {
+    uptime: number;
+    data: Record<string, unknown>;
+}
+
+parseTags = (responses: TagResponse | TagResponse[]): void => {
 
 // ❌ Bad — 인라인 함수 타입이 너무 길어 가독성 저하
 interface ChargerObject {
     on(name: string, condition: string, handler: (topic: string, error?: Error) => void): void;
-    off(name: string, condition: string, handler: (topic: string, error?: Error) => void): void;
 }
 
-getAgvUpdateHandler = (agvId: number): ((topic: string, error?: Error) => void) => (topic: string, error?: Error): void => {
-    // ...
-};
+// ❌ Bad — 인라인 객체 타입이 파라미터에 직접 들어감
+parseTags = (
+    responses: { uptime: number; data: Record<string, unknown> }
+        | { uptime: number; data: Record<string, unknown> }[],
+): void => {
 ```
 
 ### enum vs const object
