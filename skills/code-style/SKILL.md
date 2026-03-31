@@ -714,6 +714,23 @@ driver.ref as unknown as CommHandler
 const closed = door.getTag('stat.closed') as number;
 ```
 
+### 코드 줄 길이
+
+한 줄은 **120자 이내**로 작성한다. 초과하면 줄바꿈하여 가독성을 유지한다.
+
+```
+// ✅ Good — 120자 이내로 줄바꿈
+write = (
+    addr: string,
+    values: Data,
+    type: string,
+    options?: MemoryModelOptions,
+): Promise<CommResponse | undefined> => {
+
+// ❌ Bad — 한 줄에 모두 작성
+write = (addr: string, values: Data, type: string, options?: MemoryModelOptions): Promise<CommResponse | undefined> => {
+```
+
 ### 제네릭 활용 원칙
 
 TypeScript 전환 또는 코드 작성 시, 베이스 클래스/공통 모듈이 **하위 클래스/사용처마다 다른 데이터 구조**를 다루면 제네릭으로 설계한다. `Record<string, unknown>`, `any`, 타입 캐스팅으로 우회하지 않고 제네릭으로 해결한다.
