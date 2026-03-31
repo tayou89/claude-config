@@ -14,6 +14,26 @@ TypeScript 코드를 작성하거나 수정할 때 아래 규칙을 따른다.
 - IDE 경고(ESLint, TypeScript 힌트) **0개**를 목표로 한다. 경고가 발생하면 코드 수정 또는 ESLint 규칙 조정으로 해결한다
 - ESLint의 JS 기본 규칙(`no-unused-vars`, `no-use-before-define`, `no-shadow`)은 TypeScript에서 오탐이 발생하므로 **off**하고, `@typescript-eslint/` 대응 규칙을 사용한다
 
+## JS → TS 전환 시 값 보존 원칙
+
+타입 전환 중 **함수에 전달되는 값, 콜백 인자, 반환값**을 절대로 변경하지 않는다. 타입이 맞지 않을 때 값을 바꾸는 대신 **타입을 넓혀서** 원본 값을 그대로 전달한다.
+
+대표적인 위반 패턴:
+- `callback(null, error)` → `callback(undefined, error.message)` ← 값을 변경하지 말 것
+- `callback(err, msg)` → `callback(new Error(msg))` ← 파라미터 개수/타입 변경 금지
+- `this._client = undefined` 등 dispose 로직 누락 ← 원본 cleanup 코드 보존
+
+```
+// ✅ Good — 원본 값 유지, 타입만 넓힘
+// CommCallback의 errorMessage 타입을 string | Error로 선언
+callback(undefined, error as Error);  // 원본: callback(null, error)
+
+// ❌ Bad — 타입을 맞추려고 값을 변경
+callback(undefined, (error as Error).message);  // 원본의 error 객체가 message 문자열로 바뀜
+```
+
+전환 완료 후 **원본 JS와 compiled JS output을 비교**하여 값 변경 여부를 반드시 확인한다.
+
 ## JS → TS 전환 시 코드 구조 보존
 
 타입 추가, import 변경 등 **코드 구조를 바꿀 필요가 없는 전환 작업**에서는 원본 JS 코드의 구조(변수 선언 위치, 디스트럭처링 패턴, 제어 흐름 등)를 **그대로 유지**한다.
