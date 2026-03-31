@@ -333,23 +333,9 @@ class Parser {
 
 ## 타입 오류 발생 시 근본 원인 우선
 
-타입 오류가 발생했을 때 **`[key: string]: unknown` 인덱스 시그니처 추가나 타입 캐스팅으로 회피하지 않는다.** 오류의 근본 원인을 찾아 타입 설계를 수정한다.
+타입 오류도 근본 원인 우선 해결 원칙(CLAUDE.md 참조)을 동일하게 적용한다. `[key: string]: unknown` 추가나 `as` 캐스팅으로 오류를 회피하지 않는다.
 
-인덱스 시그니처 회피 패턴은 그 타입을 사용하는 모든 곳으로 오염이 연쇄 전파된다:
-
-```
-// ❌ Bad — 오류를 회피하기 위한 연쇄 인덱스 시그니처 추가
-encode(obj: Record<string, unknown>)  ← 선언 실수
-  → REQ_FRAME에 [key: string]: unknown 추가
-  → RequestData에 param: Record<string, unknown> 추가
-  → FrameParam에 [key: string]: unknown 추가
-  → FEnetRequestData에 [key: string]: unknown 추가
-
-// ✅ Good — 근본 원인(encode 선언)을 수정하면 연쇄가 모두 해소됨
-encode(obj: unknown)  ← 올바른 선언
-```
-
-타입 오류가 연쇄적으로 발생하면 **오류가 처음 시작된 지점**을 찾아 그 선언을 수정한다.
+특히 타입 오류가 연쇄적으로 발생할 때(A 수정 → B에서 에러 → B 수정 → C에서 에러) **연쇄의 시작점을 찾아 그 선언을 수정**한다. 여러 곳에 인덱스 시그니처를 추가해야 한다면 그건 근본 원인이 따로 있다는 신호다.
 
 ## 타입 억제 주석 금지
 
