@@ -311,6 +311,46 @@ write(addr: string, ..., options?: Record<string, unknown>): void;
 type SocketManagerConstructor = new (options: Record<string, unknown>) => SocketManager;
 ```
 
+## 외부 라이브러리 `.d.ts` 선언 원칙
+
+`@types/`가 없는 라이브러리의 타입을 직접 선언할 때 **"아무 값이나 받거나 반환"하는 메서드는 `Record<string, unknown>` 대신 `unknown`** 을 사용한다.
+
+`Record<string, unknown>`을 사용하면 내부 코드가 그 타입을 만족시키기 위해 불필요한 인덱스 시그니처 `[key: string]: unknown`를 추가해야 하는 연쇄 오염이 발생한다.
+
+```
+// ✅ Good — "아무 값이나" 받거나 반환하는 메서드는 unknown
+class Parser {
+    encode(obj: unknown): Buffer;      // 내부 코드에서 캐스팅 불필요
+    parse(buffer: Buffer): unknown;    // 결과를 구체적 타입으로 단일 캐스팅 가능
+}
+
+// ❌ Bad — Record<string, unknown>으로 선언하면 내부 코드 오염 시작
+class Parser {
+    encode(obj: Record<string, unknown>): Buffer;  // → 전달 객체에 인덱스 시그니처 강제
+    parse(buffer: Buffer): Record<string, unknown>; // → as unknown as ConcreteType 이중 캐스팅 유발
+}
+```
+
+## 타입 오류 발생 시 근본 원인 우선
+
+타입 오류가 발생했을 때 **`[key: string]: unknown` 인덱스 시그니처 추가나 타입 캐스팅으로 회피하지 않는다.** 오류의 근본 원인을 찾아 타입 설계를 수정한다.
+
+인덱스 시그니처 회피 패턴은 그 타입을 사용하는 모든 곳으로 오염이 연쇄 전파된다:
+
+```
+// ❌ Bad — 오류를 회피하기 위한 연쇄 인덱스 시그니처 추가
+encode(obj: Record<string, unknown>)  ← 선언 실수
+  → REQ_FRAME에 [key: string]: unknown 추가
+  → RequestData에 param: Record<string, unknown> 추가
+  → FrameParam에 [key: string]: unknown 추가
+  → FEnetRequestData에 [key: string]: unknown 추가
+
+// ✅ Good — 근본 원인(encode 선언)을 수정하면 연쇄가 모두 해소됨
+encode(obj: unknown)  ← 올바른 선언
+```
+
+타입 오류가 연쇄적으로 발생하면 **오류가 처음 시작된 지점**을 찾아 그 선언을 수정한다.
+
 ## 타입 억제 주석 금지
 
 `@ts-expect-error`, `@ts-ignore`, `eslint-disable` 주석을 사용하지 않는다. 타입 에러가 발생하면 **타입을 올바르게 수정**하여 해결한다. 주석으로 에러를 숨기는 것은 근본 원인을 방치하는 것이다.
