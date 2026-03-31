@@ -956,13 +956,21 @@ interface ScadaState {
 
 ### 타입 파일 위치
 
-- **여러 파일에서 공유하는 타입**: `types/` 폴더에 정의 (장비 데이터, 이벤트 타입, API 타입 등)
+타입 정의는 **해당 모듈 가까이에 co-locate**한다. 모듈 디렉터리 하위에 `types/` 폴더를 만들고 `{모듈명}.types.ts` 형식으로 배치한다.
+
+- **모듈 공유 타입**: 해당 모듈의 `types/` 폴더에 정의. 예: `server/types/operation-server.types.ts`, `equipment/types/charger.types.ts`
+- **여러 모듈에서 공유하는 공통 타입**: `define/types.ts` 등 공통 정의 파일
 - **해당 파일에서만 사용하는 내부 타입**: 파일 상단에 인라인 정의
 
 ```
-// ✅ Good — 공유 타입: types/ 폴더
-// types/device/agv.ts
-export interface AgvStatus { ... }
+// ✅ Good — 모듈 co-location
+// server/types/operation-server.types.ts
+export interface ChargeData { ... }
+export interface WorkData { ... }
+
+// ✅ Good — 공통 도메인 타입
+// define/types.ts
+export interface BatterySlot { ... }
 
 // ✅ Good — 내부 전용: 인라인
 // controller/work.ts
