@@ -106,15 +106,24 @@ import Door from '../equipment/door';
 import Foo from '../equipment/door';     // 이것도 됨
 ```
 
-## import * 금지
+## import * 금지 (CJS 네임스페이스 모듈 예외)
 
-`import * as X from '...'`를 사용하지 않는다. 필요한 것만 named import한다. 모듈 전체가 필요한 경우는 모듈 구조를 재설계한다.
+`import * as X from '...'`를 사용하지 않는다. 필요한 것만 named import한다. 모듈 구조를 재설계하거나 named import로 대체한다.
+
+**예외**: CJS 모듈이 `module.exports = { a: { ... }, b: { ... } }` 형태로 **모듈 자체가 하나의 네임스페이스**인 경우, `import *`가 오히려 정확하다. 이 경우 `import { a }`로 named import하면 타입 선언은 동작하지만 실제 구조와 의미가 어긋난다.
+
+판단 기준: 해당 라이브러리를 JS에서 `const lib = require('lib'); lib.a.b()` 패턴으로 사용하는가? → `import * as lib`가 맞다.
 
 ```
-// ✅ Good
+// ✅ Good — named export 모듈
 import { UDP as FEnetUDP, TCP as FEnetTCP } from './fenet';
 
-// ❌ Bad
+// ✅ Good — CJS 네임스페이스 모듈 (jsmodbus, 기타 CJS 전용 라이브러리)
+import * as jsmodbus from 'jsmodbus';
+// 원본 JS: const jsmodbus = require('jsmodbus'); jsmodbus.client.TCP(...)
+// import *가 이 패턴을 정확히 반영함
+
+// ❌ Bad — named export 모듈에 import * 사용
 import * as FEnet from './fenet';
 ```
 
