@@ -202,7 +202,7 @@ const connect = () => {
 
 ## 변수 선언 후 빈 줄
 
-변수 선언(`const`, `let`, `var`) 블록 다음에는 **항상 빈 줄 하나**를 넣어 분리한다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. **초기화 표현식의 형태(단순 값, 객체 리터럴, 함수 호출, 콜백 포함 여러 줄 등)에 관계없이 동일하게 적용한다.** **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
+**연속된** `const`/`let`/`var` 선언들은 **하나의 블록**으로 취급한다. 블록 내 개별 선언 사이에는 빈 줄을 넣지 않고, **블록 전체 끝에 빈 줄 하나**만 넣는다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. **초기화 표현식의 형태(단순 값, 객체 리터럴, 함수 호출, 콜백 포함 여러 줄 등)에 관계없이 동일하게 적용한다.** **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
 
 ```
 // ✅ Good — 객체 리터럴 변수 선언 후 빈 줄
@@ -226,6 +226,19 @@ const state = this.getSocketState();
 
 return !state || state === WebSocket.CLOSED;
 
+// ✅ Good — 연속된 const는 하나의 블록, 블록 끝에만 빈 줄
+const auth = new Auth({ username, password });
+const res = await auth.request({ url });
+
+this.setConnected(true);
+
+// ❌ Bad — 연속된 const 선언 사이에 빈 줄
+const auth = new Auth({ username, password });
+
+const res = await auth.request({ url });    ← 제거
+
+this.setConnected(true);
+
 // ❌ Bad — 변수 선언 후 빈 줄 없음
 const state = this.getSocketState();
 return !state || state === WebSocket.CLOSED;
@@ -248,41 +261,55 @@ socket.setTimeout(20000);
 
 ## 메서드 내 불필요한 빈 줄 금지
 
-메서드/함수 본문 안에서 빈 줄은 **변수 선언 블록 뒤에만** 허용한다. 실행문 사이, if/else/try/catch 블록(`}`) 앞뒤, 주석 앞뒤 등 그 외 모든 위치에는 빈 줄을 넣지 않는다. 이 규칙은 if, else, try, catch, 콜백 등 모든 블록 내부에도 동일하게 적용한다.
+메서드/함수 본문 안에서 빈 줄은 **변수 선언 블록 뒤에만** 허용한다. 그 외 모든 위치에는 빈 줄을 넣지 않는다:
+
+- 실행문과 실행문 사이
+- **모든 블록의 `}` 앞뒤** — `if`/`else`/`try`/`catch`/`for`/`while`/`forEach`/콜백/arrow function 등 종류 불문
+- 주석 앞뒤
+
+이 규칙은 중첩된 블록(콜백 안의 if, try 안의 forEach 등) 내부에도 **동일하게** 적용한다.
 
 ```
-// ✅ Good — 실행문끼리 빈 줄 없이 붙임, 변수 선언 뒤에만 빈 줄
-this.info('e-Stop Off');
-const msg = {
-    reqid_s: REQ.RESET_ESTOP,
-    param1: type
+// ✅ Good — 변수 선언 뒤에만 빈 줄, 실행문 사이·블록 } 뒤 빈 줄 없음
+create = () => {
+    const driver = drivers.get(options);
+
+    if (driver?.ref) {
+        this.setComm(driver.ref);
+    }
+    this.addWriteBlock(WRITE_BLOCK);
+    items.forEach((item) => {
+        this.addReadBlock(item);
+    });
+    this.init();
 };
 
-return this.send(msg, callback);
-
 // ✅ Good — 블록 내부에서도 동일
-if (reqeust) {
-    const { tid, reject, callback, msg } = reqeust;
-    const translatedRequest = this.translateRequest(msg);
+if (request) {
+    const { tid, callback, msg } = request;
+    const translated = this.translate(msg);
 
-    this.commError(`${translatedRequest} NAK 수신`);
+    this.commError(translated);
     clearTimeout(tid);
 }
 
-// ❌ Bad — 실행문 사이에 불필요한 빈 줄
-this.info('e-Stop Off');
-
-const msg = {
-    reqid_s: REQ.RESET_ESTOP,
-    param1: type
-};
-
-// ❌ Bad — 블록(}) 뒤에 불필요한 빈 줄
+// ❌ Bad — 블록 } 뒤 불필요한 빈 줄 (if, forEach, 콜백 모두 해당)
 if (condition) {
     doSomething();
 }
-
+                  ← 제거
 doOther();
+
+items.forEach((item) => {
+    process(item);
+});
+                  ← 제거
+doNext();
+
+// ❌ Bad — 실행문 사이 불필요한 빈 줄
+this.info('시작');
+
+this.connect();
 ```
 
 ## 불필요한 async 제거

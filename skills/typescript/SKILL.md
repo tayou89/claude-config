@@ -100,7 +100,7 @@ import * as FEnet from './fenet';
 같은 역할/카테고리에 속하는 모듈들은 **타입 정의 수준, 패턴, 구조를 통일**한다. 한 모듈만 다른 방식으로 하지 않는다.
 
 - **타입 정의 수준**: 동일 카테고리의 모듈이 `Record<string, unknown>`을 쓰면 전부 그렇게 하고, 구체 인터페이스를 쓰면 전부 구체적으로 한다. 한 모듈만 구체적이고 나머지가 느슨하면 안 된다. 수준을 올리려면 전부 함께 올린다.
-- **네이밍 패턴**: 인터페이스명(`XxxConfig`, `XxxOptions`, `XxxTags`), 변수명, 메서드명이 같은 카테고리 내에서 일관되어야 한다.
+- **네이밍 패턴**: 인터페이스명(`XxxConfig`, `XxxOptions`, `XxxTags`), 변수명, 메서드명이 같은 카테고리 내에서 일관되어야 한다. 같은 역할을 하는 타입 패밀리(`WriteXxx` / `ReadXxx`)는 접두사/접미사 패턴을 통일한다 (예: `WriteMemoryModel` / `ReadMemoryModel` — `WriteBlockModel`처럼 혼용 금지).
 - **클래스 구조**: 같은 베이스 클래스를 상속하는 모듈들은 생성자 패턴, 초기화 흐름, dispose 패턴이 동일해야 한다.
 - **적용 범위**: equipment 장비 클래스, controller 컨트롤러, driver 드라이버 등 동일 디렉터리/역할의 모듈이 대상이다.
 
