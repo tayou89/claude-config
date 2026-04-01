@@ -699,6 +699,35 @@ if (args && args.length > 0) {
 }
 ```
 
+## 복잡한 타입 constraint는 named alias로 분리
+
+조건부 타입(`T extends ... ? A : B`)의 `extends` 조건이 길거나 같은 구조가 반복되면, **named type alias로 먼저 추출**하고 조건부 타입 본문에서는 alias 이름만 참조한다. 이름 자체가 의도를 설명하므로 주석 없이도 각 분기의 의미가 바로 보인다.
+
+```ts
+// ❌ Bad — 인라인 constraint가 길어서 분기 의도가 묻힘
+export type TagsFrom<T> =
+    T extends readonly { model: readonly { name: string; type: string }[] }[]
+        ? TagsFromModelArray<FlattenModels<T>>
+    : T extends { model: readonly { name: string; type: string }[] }
+        ? TagsFromModelArray<T['model']>
+    : T extends readonly { name: string; type: string }[]
+        ? TagsFromModelArray<T>
+    : never;
+
+// ✅ Good — constraint를 named alias로 분리 → 분기 의도가 한눈에 보임
+type ReadBlocksArray = readonly { model: readonly { name: string; type: string }[] }[];
+type BlockWithModel  = { model: readonly { name: string; type: string }[] };
+type FlatModelArray  = readonly { name: string; type: string }[];
+
+export type TagsFrom<T> =
+    T extends ReadBlocksArray ? TagsFromModelArray<FlattenModels<T>>
+  : T extends BlockWithModel  ? TagsFromModelArray<T['model']>
+  : T extends FlatModelArray  ? TagsFromModelArray<T>
+  : never;
+```
+
+**판단 기준**: `extends` 조건이 한 줄을 넘거나, 동일한 구조가 2곳 이상 반복되면 alias로 분리한다.
+
 ## 리소스 정리는 호출부가 아닌 소유자에서
 
 콜백 해제, 리스너 제거, 예약 취소 등 **리소스 정리 로직은 해당 리소스를 직접 관리하는 메서드 내부**에 둔다. 호출부에서 정리를 수행하면 다른 호출 경로에서 누락될 수 있다.
