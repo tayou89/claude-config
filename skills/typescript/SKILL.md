@@ -129,6 +129,8 @@ interface CraneOptions { config: CraneConfig }
 
 `as Type` (단일 캐스팅)은 외부 라이브러리 경계, JSON 파싱 등 불가피한 경우에만 허용하고, 비즈니스 로직에서는 사용하지 않는다.
 
+**`undefined!` 허용 예외**: `dispose()` 메서드에서 리소스 해제 목적으로 프로퍼티를 강제 초기화할 때는 `undefined!`를 허용한다. 이는 dispose 후 GC가 참조를 회수할 수 있도록 하는 관용적 패턴이다. 단, dispose 메서드 외부에서는 사용하지 않는다.
+
 ```
 // ✅ Good — 인터페이스로 해결
 class FEnet implements CommHandler { ... }
