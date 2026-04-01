@@ -14,47 +14,6 @@ TypeScript 코드를 작성하거나 수정할 때 아래 규칙을 따른다.
 - IDE 경고(ESLint, TypeScript 힌트) **0개**를 목표로 한다. 경고가 발생하면 코드 수정 또는 ESLint 규칙 조정으로 해결한다
 - ESLint의 JS 기본 규칙(`no-unused-vars`, `no-use-before-define`, `no-shadow`)은 TypeScript에서 오탐이 발생하므로 **off**하고, `@typescript-eslint/` 대응 규칙을 사용한다
 
-## JS → TS 전환 시 값 보존 원칙
-
-타입 전환 중 **함수에 전달되는 값, 콜백 인자, 반환값**을 절대로 변경하지 않는다. 타입이 맞지 않을 때 값을 바꾸는 대신 **타입을 넓혀서** 원본 값을 그대로 전달한다.
-
-대표적인 위반 패턴:
-- `callback(null, error)` → `callback(undefined, error.message)` ← 값을 변경하지 말 것
-- `callback(err, msg)` → `callback(new Error(msg))` ← 파라미터 개수/타입 변경 금지
-- `this._client = undefined` 등 dispose 로직 누락 ← 원본 cleanup 코드 보존
-
-```
-// ✅ Good — 원본 값 유지, 타입만 넓힘
-// CommCallback의 errorMessage 타입을 string | Error로 선언
-callback(undefined, error as Error);  // 원본: callback(null, error)
-
-// ❌ Bad — 타입을 맞추려고 값을 변경
-callback(undefined, (error as Error).message);  // 원본의 error 객체가 message 문자열로 바뀜
-```
-
-전환 완료 후 **원본 JS와 compiled JS output을 비교**하여 값 변경 여부를 반드시 확인한다.
-
-## JS → TS 전환 시 코드 구조 보존
-
-타입 추가, import 변경 등 **코드 구조를 바꿀 필요가 없는 전환 작업**에서는 원본 JS 코드의 구조(변수 선언 위치, 디스트럭처링 패턴, 제어 흐름 등)를 **그대로 유지**한다.
-
-- 타입 어노테이션만 추가하고, 변수 추출/분리/인라인화 등 구조 변경을 하지 않는다
-- 리팩터링과 타입 전환을 섞지 않는다. 구조를 바꾸고 싶으면 **별도 작업으로 분리**하고 사용자에게 제안한다
-- 타입 시스템 제약(유니온 타입 접근, 캐스팅 필요 등)으로 구조 변경이 불가피한 경우에만 **사용자에게 설명하고 승인**받는다
-
-```
-// ✅ Good — 원본 구조 유지, 타입만 추가
-const { addr, type } = list.reduce<WriteBlockTree | WriteBlockLeaf>((obj, e) => {
-    ...
-}, this._writeBlocks) as WriteBlockLeaf;
-
-// ❌ Bad — 불필요하게 중간 변수 추출 (원본에 없던 구조 변경)
-const leaf = list.reduce<WriteBlockTree | WriteBlockLeaf>((obj, e) => {
-    ...
-}, this._writeBlocks);
-const { addr, type } = leaf as WriteBlockLeaf;
-```
-
 ## 소스와 빌드 산출물
 
 `.ts` 파일과 대응하는 `.js` 파일이 함께 존재하면, `.js`는 빌드 산출물이다. **반드시 `.ts` 파일을 수정하고 빌드(`tsc`)하여 `.js`를 생성**한다. `.js`를 직접 수정하지 않는다. 수정 전에 대응하는 `.ts` 파일이 존재하는지 항상 확인한다.
