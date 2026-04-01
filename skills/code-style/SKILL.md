@@ -169,6 +169,37 @@ const { WORK_CONTROL_STATE } = require('../define/property');
 const INTERNAL_CONTROL_EVT = 'control.internal';
 ```
 
+## import는 반드시 파일 상단에
+
+모든 `import` / `require`는 **파일 최상단에 모아서 선언**한다. 코드 중간에 인라인 `import()`나 `require()`를 넣지 않는다. TypeScript의 `import('path').Type` 인라인 타입 참조도 금지한다.
+
+인라인 import는 IDE 자동완성/리팩터링 추적이 끊기고, 코드 흐름을 이해하기 위해 파일 전체를 읽어야 하는 부담을 만든다.
+
+불가피하게 인라인 import가 필요한 경우(순환 의존 회피 등)에는 **사용자에게 이유를 설명하고 승인받은 후** 사용한다.
+
+```ts
+// ✅ Good — 상단에 일괄 선언
+import type { DriverOptions } from '../driver/common/types';
+const Logger = require('../util/logger');
+
+interface ChargerOptions {
+    driver: string;
+    config: DriverOptions;
+}
+
+// ❌ Bad — 인터페이스 안에 인라인 import()
+interface ChargerOptions {
+    driver: string;
+    config: import('../driver/common/types').DriverOptions;
+}
+
+// ❌ Bad — 함수 중간에 require()
+const connect = () => {
+    const net = require('net');
+    net.createConnection(...);
+};
+```
+
 ## 변수 선언 후 빈 줄
 
 변수 선언(`const`, `let`, `var`) 블록 다음에는 **항상 빈 줄 하나**를 넣어 분리한다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. **초기화 표현식의 형태(단순 값, 객체 리터럴, 함수 호출, 콜백 포함 여러 줄 등)에 관계없이 동일하게 적용한다.** **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**
