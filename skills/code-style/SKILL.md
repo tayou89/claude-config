@@ -151,22 +151,32 @@ if (data != undefined) {
 }
 ```
 
-## 파일 상단 구조: import → 빈 줄 → 상수/변수
+## 파일 상단 구조: import → 타입/인터페이스 → 상수/변수
 
-파일 상단에서 `require`/`import` 블록과 그 아래의 상수/변수 선언 사이에는 **빈 줄 하나**를 넣어 구분한다.
+파일 상단은 다음 순서로 구성한다. 각 섹션 사이에는 **빈 줄 하나**로 구분한다.
 
-```
+1. **import / require** — 모든 외부 의존성
+2. **type / interface 정의** — 해당 파일에서 사용하는 타입/인터페이스
+3. **상수/변수 선언** — `const`, `let` 등
+
+```ts
 // ✅ Good
-const EventEmitter = require('events');
-const { WORK_CONTROL_STATE } = require('../define/property');
+import Logger = require('../util/logger');
+import { EventEmitter } from 'events';
 
-const INTERNAL_CONTROL_EVT = 'control.internal';
-const TASK_STEP_KEYS = { ... };
+interface FooOptions {
+    host: string;
+    port: number;
+}
 
-// ❌ Bad — import와 상수 선언이 빈 줄 없이 붙어 있음
-const EventEmitter = require('events');
-const { WORK_CONTROL_STATE } = require('../define/property');
-const INTERNAL_CONTROL_EVT = 'control.internal';
+const DEFAULT_TIMEOUT = 3000;
+const { SOME_CONSTANT } = PROPERTY;
+
+// ❌ Bad — 상수가 타입 정의보다 먼저 오는 경우
+import Logger = require('../util/logger');
+const { SOME_CONSTANT } = PROPERTY;
+
+interface FooOptions { ... }
 ```
 
 ## import는 반드시 파일 상단에

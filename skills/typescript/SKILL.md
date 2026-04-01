@@ -95,6 +95,66 @@ import * as FEnet from './fenet';
 - **타입 좁히기 우선**: 캐스팅(`as`)보다 타입 가드, 제네릭, 인터페이스 설계를 우선한다.
 - **구체적 타입 정의 원칙**: `Record<string, unknown>`, `object`, `any` 등 느슨한 타입 대신 **구체적 인터페이스를 정의**하는 것이 정석이다. 공통 필드는 베이스 인터페이스로, 개별 필드는 extends로 확장한다. 느슨한 타입을 사용해야 할 경우 사용자에게 근거와 함께 승인받는다.
 
+## 접근 제한자 및 명명 규칙
+
+### 접근 제한자
+- **`public`**: 키워드 생략 (TypeScript 기본값, 명시 불필요)
+- **`protected`**: 명시. 서브클래스에서 접근하는 멤버
+- **`private`**: 명시. 해당 클래스 내부에서만 사용하는 멤버
+
+클래스 내부에서만 사용하는 멤버는 **반드시** `private` 또는 `protected`로 선언한다. 접근 제한자 없이 외부에 노출되어서는 안 된다.
+
+### `_` 접두사 규칙
+
+`private` 또는 `protected`로 선언된 멤버(프로퍼티, 메서드 모두)는 이름 앞에 `_`를 붙인다. 외부에 공개된 `public` 멤버에는 `_`를 붙이지 않는다.
+
+```ts
+// ✅ Good
+class Charger extends ThingExt<ChargerTags> {
+    private _id: number;
+    private _status: number;
+    protected _logger: Logger;
+
+    getId = (): number => this._id;       // public — _ 없음
+    getStatus = (): number => this._status;
+
+    private _init = (): void => { ... };  // private 내부 메서드 — _ 있음
+}
+
+// ❌ Bad — private인데 _ 없음, 또는 public인데 _ 있음
+private id: number;
+_getId = (): number => this.id;
+```
+
+### 클래스 멤버 배치 순서
+
+클래스 멤버는 **public → protected → private** 순서로 배치한다. 각 그룹 내에서는 프로퍼티 → constructor → 메서드 순서를 따른다.
+
+```ts
+class Foo {
+    // 1. public 프로퍼티
+    name: string;
+
+    // 2. protected 프로퍼티
+    protected _logger: Logger;
+
+    // 3. private 프로퍼티
+    private _id: number;
+    private _status: number;
+
+    constructor(...) { ... }
+
+    // 4. public 메서드
+    getId = (): number => this._id;
+
+    // 5. protected 메서드
+    protected _handleEvent = (): void => { ... };
+
+    // 6. private 메서드
+    private _init = (): void => { ... };
+}
+```
+
 ## 동일 카테고리는 동일 수준으로 통일
 
 같은 역할/카테고리에 속하는 모듈들은 **타입 정의 수준, 패턴, 구조를 통일**한다. 한 모듈만 다른 방식으로 하지 않는다.
