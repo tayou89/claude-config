@@ -512,36 +512,27 @@ interface AllocLock {
 class Work { ... }
 ```
 
-## 타입 유틸리티 API 설계: 단일 진입점 원칙
+## 타입 유틸리티: 조건부 타입으로 입력 형태 자동 판별
 
-여러 자료구조 형태를 다루는 타입 유틸리티를 설계할 때, **자료구조 형태별로 별도 유틸리티를 만들지 않는다.** 사용자가 "지금 내 데이터 형태가 어느 케이스인지" 판별하여 알맞은 유틸리티를 골라야 하는 API는 인지 부하와 오사용을 유발한다.
+여러 자료구조 형태를 다루는 타입 유틸리티는 **조건부 타입으로 입력 형태를 자동 판별**하여 단일 진입점으로 구현한다. Zod의 `z.infer<>`, `Awaited<T>`, `ReturnType<T>` 등 TypeScript 표준 유틸리티가 이 방식을 따른다.
 
-**단일 진입점**에 조건부 타입으로 형태를 자동 판별한다. TypeScript 생태계 표준(Zod의 `z.infer<>`, `Awaited<T>`, `ReturnType<T>` 등)도 이 패턴을 따른다.
+> 명명 원칙(목적 기준 이름, 입력 형태 기준 금지)은 code-style 스킬을 참조한다.
 
 ```ts
-// ❌ Bad — 자료구조 형태별 별도 유틸리티
-// 사용자가 .model 접근 여부, 어느 함수를 써야 하는지 매번 판단해야 함
-type CraneTags = TagsFromModel<typeof WRITE_BLOCK['model']>
-              & TagsFromModel<typeof READ_BLOCK['model']>;
-type DoorTags  = TagsFromModel<typeof WRITE_BLOCK['model']>
-              & TagsFromReadBlocks<typeof READ_BLOCK>;   // 배열이면 다른 함수?
-
-// ✅ Good — 단일 진입점, 조건부 타입으로 자동 판별
-// 사용자는 값을 그대로 전달만 하면 됨
+// ✅ Good — 조건부 타입으로 입력 형태 자동 판별
 type TagsFrom<T> =
     T extends readonly { model: readonly { name: string; type: string }[] }[]
-        ? /* 블록 배열 처리 */ :
-    T extends { model: readonly { name: string; type: string }[] }
-        ? /* 단일 블록 처리 */ :
-    T extends readonly { name: string; type: string }[]
-        ? /* flat 배열 처리 */ : never;
+        ? TagsFromBlockArray<T>                   // [{ model: [...] }, ...]
+    : T extends { model: readonly { name: string; type: string }[] }
+        ? TagsFromModelArray<T['model']>          // { model: [...] }
+    : T extends readonly { name: string; type: string }[]
+        ? TagsFromModelArray<T>                   // [...] flat array
+    : never;
 
+// 사용: 형태와 무관하게 동일한 패턴
 type CraneTags = TagsFrom<typeof WRITE_BLOCK> & TagsFrom<typeof READ_BLOCK>;
-type DoorTags  = TagsFrom<typeof WRITE_BLOCK> & TagsFrom<typeof READ_BLOCK>;
 type ScadaTags = TagsFrom<typeof WRITE_BLOCK> & TagsFrom<typeof READ_BLOCKS>;
 ```
-
-**적용 시점**: 타입 유틸리티 함수/타입을 설계하거나 여러 유틸리티 함수에 걸쳐 비슷한 역할을 하는 것들이 보이면, 단일 진입점으로 통합할 수 있는지 먼저 검토한다.
 
 ## 반환 타입 명시
 
