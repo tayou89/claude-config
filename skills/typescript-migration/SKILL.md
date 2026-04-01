@@ -73,6 +73,22 @@ const leaf = list.reduce<WriteBlockTree | WriteBlockLeaf>((obj, e) => {
 const { addr, type } = leaf as WriteBlockLeaf;
 ```
 
+## 라이브러리 콜백 내 미선언 변수 처리
+
+JS 코드에서 라이브러리 콜백 안에 **선언되지 않은 변수**가 참조되어 있으면, TS 전환 전에 반드시 **라이브러리 소스를 확인**한다. 해당 변수가 라이브러리가 콜백 스코프에 동적으로 주입하는 내부 변수일 수 있다.
+
+```javascript
+// 원본 JS — smartBuffer는 라이브러리 내부에서 주입되는 변수
+encoder: function(value, obj) {
+    return obj.CalcBCC(smartBuffer.toBuffer()); // ← 선언 없이 사용
+}
+```
+
+이런 경우 콜백에서 해당 변수를 제거하거나 대체하면 런타임 동작이 달라진다. **라이브러리 소스(`node_modules/라이브러리/dist/*.js`)를 열어** 해당 변수가 어떻게 주입되는지 확인한 후 올바른 대안을 결정한다.
+
+- 라이브러리 내부 변수를 단순히 `Buffer.alloc(0)` 등으로 대체하지 않는다
+- 대체가 불가피하면 라이브러리가 해당 변수로 달성하려는 목적을 파악하고 동등한 방법을 찾는다
+
 ## 전환 완료 후 검증
 
 전환 완료 후 반드시 원본 JS와 compiled JS output을 비교하여 값/동작 변경 여부를 확인한다.
