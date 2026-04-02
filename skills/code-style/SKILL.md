@@ -210,6 +210,39 @@ const connect = () => {
 };
 ```
 
+## 파일 상단 타입/인터페이스 섹션 — 빈 줄 없음
+
+파일 상단의 `type`/`interface` 선언들은 **하나의 타입 섹션**으로 취급한다. 각 정의 사이에 빈 줄을 넣지 않는다. 타입 섹션 전체 끝에만 빈 줄 하나를 넣어 상수 섹션과 구분한다.
+
+이 규칙은 "변수 선언 후 빈 줄" 규칙의 예외다 — 타입/인터페이스는 런타임 값이 아니므로 섹션 내 빈 줄 없이 묶는다.
+
+```ts
+// ✅ Good — 타입 섹션 내 빈 줄 없음
+type FooTags = TagsFrom<typeof WRITE_BLOCK>;
+interface FooOptions {
+    driver: string;
+    config: DriverOptions;
+}
+interface BarConfig {
+    host: string;
+    port: number;
+}
+type ExpectedMap = Record<string, number>;
+
+const DEFAULT_TIMEOUT = 3000; // 타입 섹션 끝에 빈 줄 하나 후 상수
+
+// ❌ Bad — 타입/인터페이스 사이에 빈 줄
+type FooTags = TagsFrom<typeof WRITE_BLOCK>;
+
+interface FooOptions {
+    driver: string;
+}
+
+interface BarConfig {
+    host: string;
+}
+```
+
 ## 변수 선언 후 빈 줄
 
 **연속된** `const`/`let`/`var` 선언들은 **하나의 블록**으로 취급한다. 블록 내 개별 선언 사이에는 빈 줄을 넣지 않고, **블록 전체 끝에 빈 줄 하나**만 넣는다. `return`문 앞이라도 예외 없이 빈 줄을 넣는다. **초기화 표현식의 형태(단순 값, 객체 리터럴, 함수 호출, 콜백 포함 여러 줄 등)에 관계없이 동일하게 적용한다.** **이 규칙은 함수/메서드 본문뿐 아니라 if, else, try, catch 등 모든 블록 내부에도 동일하게 적용한다.**

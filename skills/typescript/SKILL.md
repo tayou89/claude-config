@@ -26,6 +26,42 @@ TypeScript 코드를 작성하거나 수정할 때 아래 규칙을 따른다.
 
 `require()` / `module.exports` 대신 `import` / `export`를 사용한다. tsc가 CommonJS로 컴파일하므로 런타임 호환성에 문제없다.
 
+**TS 파일 내 require 형식 통일**: TS 파일에서 `require()`를 사용해야 하는 경우(JS 소비자가 있는 모듈 등) 반드시 `import X = require(...)` 형태를 사용한다. `const X = require(...)`를 import문과 혼용하지 않는다.
+
+```ts
+// ✅ Good — import 문으로 통일
+import Logger from '../util/logger';
+import PROPERTY = require('../define/property');  // JS 소비자 있는 모듈
+
+// ❌ Bad — const require와 import 혼용
+import Logger from '../util/logger';
+const PROPERTY = require('../define/property');  // import와 혼용 금지
+```
+
+**JS 소비자가 없는 모듈** → `import X from '...'` 또는 `import { X } from '...'`  
+**JS 소비자가 있는 모듈** → `import X = require('...')`  
+**타입만 필요한 경우** → `import type { X } from '...'`
+
+**모듈에서 일부 값만 필요한 경우 — named import로 직접 구조분해**: `esModuleInterop: true` 설정 하에서는 `export =` 모듈도 named import가 가능하다. 중간 변수를 만들어 구조분해하지 않고 import 시점에 바로 꺼낸다.
+
+```ts
+// ✅ Good — import 시점에 직접 구조분해
+import { WRITE_BLOCK, READ_BLOCK } from './crane-map';
+import { CHARGER_BATTERY_STAT, CHARGER_STATUS } from '../define/property';
+
+// ❌ Bad — 중간 변수를 통한 구조분해
+import craneMapModule = require('./crane-map');
+const { WRITE_BLOCK, READ_BLOCK } = craneMapModule;
+
+import PROPERTY = require('../define/property');
+const { CHARGER_BATTERY_STAT, CHARGER_STATUS } = PROPERTY;
+```
+
+단, 아래 경우는 `import X = require(...)` + 구조분해 패턴을 유지한다:
+- **`export = X` 방식 모듈** — `esModuleInterop`이 있어도 named import 불가 (tsc 2497 에러). `property.ts`, `*-map.ts` 등이 해당
+- 모듈 전체 참조가 필요한 경우 (`typeof module.FIELD` 타입 표현 등)
+- Logger, ThingExt, drivers 등 단일 값을 export하는 모듈
+
 ```
 // ✅ Good
 import { Logger } from '../util/logger';
@@ -33,7 +69,6 @@ import { CommHandler } from '../driver/common/types';
 
 // ❌ Bad
 const Logger = require('../util/logger');
-import Logger = require('../util/logger');
 module.exports = Door;
 export = Door;
 ```
@@ -183,11 +218,59 @@ interface DoorConfig { options: { config: Record<string, unknown> } }
 interface CraneOptions { config: CraneConfig }
 ```
 
+## 이벤트/콜백 시스템 타입 설계 원칙
+
+이벤트 버스, 이벤트 이미터, 콜백 기반 시스템은 **typed 패턴**으로 설계한다. 이벤트마다 페이로드 타입을 정확히 명시하여 콜백 파라미터에 `unknown`이나 `any`가 들어오지 않도록 한다.
+
+```ts
+// ✅ Good — 이벤트별 페이로드 타입을 EventMap으로 명시
+interface EventMap {
+    'user:login': (userId: string, timestamp: number) => void;
+    'data:received': (payload: DataPayload) => void;
+}
+
+class TypedEmitter {
+    on<K extends keyof EventMap>(event: K, callback: EventMap[K]): void;
+    emit<K extends keyof EventMap>(event: K, ...args: Parameters<EventMap[K]>): void;
+}
+// 콜백 파라미터 타입이 자동 추론됨 — as 캐스팅 불필요
+
+// ❌ Bad — 콜백 파라미터가 unknown/any → 수신 측에서 as 캐스팅 강제
+on(event: string, callback: (...args: unknown[]) => void): void;
+```
+
+이 원칙을 적용하면 콜백 수신 측에서 `as` 캐스팅이 완전히 제거된다.
+
+콜백 파라미터에 `unknown`/`any`를 유지해야 할 불가피한 이유가 있다면 반드시 사용자에게 설명하고 승인받은 후 진행한다. 타협 없이 typed 패턴을 목표로 한다.
+
 ## 타입 캐스팅 최소화
 
 **`as unknown as` (이중 캐스팅) 금지.** 타입이 맞지 않으면 인터페이스/제네릭으로 타입 설계를 수정한다.
 
-`as Type` (단일 캐스팅)은 외부 라이브러리 경계, JSON 파싱 등 불가피한 경우에만 허용하고, 비즈니스 로직에서는 사용하지 않는다.
+`as Type` (단일 캐스팅)은 데이터 출처에 따라 다르게 판단한다:
+
+**`as` 단순 캐스팅 허용 — 구조가 보장된 내부 데이터:**
+- 같은 코드베이스의 드라이버/라이브러리가 파싱한 하드웨어 통신 데이터
+- 구조가 고정된 이벤트 페이로드 (open-protocol, ROS 등 내부 제어 프로토콜)
+- 타입이 이미 정의된 함수의 반환값을 좁히는 경우
+
+이 경우 인터페이스를 정의하고 `as InterfaceName`으로 단순 캐스팅한다. type guard 함수는 필요 없다.
+
+```ts
+// ✅ Good — 구조가 보장된 하드웨어 데이터: 단순 as 허용
+interface PsetSelectedData {
+    payload: { parameterSetID: number };
+}
+const { payload } = data as PsetSelectedData;
+```
+
+**type guard 함수 또는 Zod — 신뢰할 수 없는 외부 데이터:**
+- REST API 응답
+- 사용자 입력
+- 외부 서버에서 오는 WebSocket 메시지
+- 파일에서 읽은 JSON
+
+**type guard 함수를 새로 작성하기 전에 반드시 사용자에게 확인받는다.** 내부 하드웨어 데이터에 type guard를 추가하는 것은 오버엔지니어링이다.
 
 **`undefined!` 허용 예외**: `dispose()` 메서드에서 리소스 해제 목적으로 프로퍼티를 강제 초기화할 때는 `undefined!`를 허용한다. 이는 dispose 후 GC가 참조를 회수할 수 있도록 하는 관용적 패턴이다. 단, dispose 메서드 외부에서는 사용하지 않는다.
 
