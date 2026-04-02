@@ -194,7 +194,37 @@
       "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick/reword/g''\" git rebase HEAD~2)",
       "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''1s/pick/reword/''\" git rebase HEAD~2)",
       "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''1s/pick/reword/''\" git rebase -i HEAD~2)",
-      "Bash(pm2 logs:*)"
+      "Bash(pm2 logs:*)",
+      "WebFetch(domain:github.com)",
+      "Read(//snap/bin/**)",
+      "Bash(git --version)",
+      "Bash(for ts:*)",
+      "Bash(for map:*)",
+      "Bash(conda install:*)",
+      "Bash(pip install:*)",
+      "Bash(npm test:*)",
+      "Bash(npx mocha:*)",
+      "Bash(ssh bss-testbed:*)",
+      "Bash(rsync -avz --include='*/' --include='*.log' --exclude='*.log.*' --exclude='*.gz' . bss-testbed:'C:/Users/pitin/Desktop/codes/bss-core/logs/')",
+      "Bash(LOGS=/home/tayou/Desktop/codes/bss-nodered-pjt/logs)",
+      "Bash(DEST=\"bss-testbed:C:/Users/pitin/Desktop/codes/bss-core/logs\")",
+      "Bash(__NEW_LINE_5f7caa8658aa770b__ scp:*)",
+      "Bash(scp \"$LOGS/communication/debug/debug.log\" \"$DEST/communication/debug/\")",
+      "Bash(scp \"$LOGS/communication/error/error.log\" \"$DEST/communication/error/\")",
+      "Bash(scp /home/tayou/Desktop/codes/bss-nodered-pjt/logs/communication/communication.log \"bss-testbed:C:/Users/pitin/Desktop/codes/bss-core/logs/communication/\")",
+      "Bash(scp /home/tayou/Desktop/codes/bss-nodered-pjt/logs/communication/communication.log \"bss-testbed:''C:\\\\Users\\\\pitin\\\\Desktop\\\\codes\\\\bss-core\\\\logs\\\\communication\\\\''\")",
+      "Bash(sftp bss-testbed:*)",
+      "Bash(ssh -v bss-testbed \"echo test\")",
+      "Bash(tar czf:*)",
+      "Bash(scp /tmp/bss-logs-0326.tar.gz bss-testbed:'C:/Users/pitin/Desktop/codes/bss-core/')",
+      "Bash(pkill -f \"python3 -m http.server 8888\")",
+      "Bash(while read:*)",
+      "Bash(do git:*)",
+      "Bash(sort -t'→' -k2 -n)",
+      "Read(//= \\\\\\(.*\\\\\\) =>/{name=$1} /return this\\\\._callApi/**)",
+      "Read(//home/tayou/Desktop/codes/bss-core/scada-web/**)",
+      "Bash(*)",
+      "Edit(~/.claude/skills/typescript/**)"
     ],
     "additionalDirectories": [
       "/home/tayou/.claude",
@@ -208,7 +238,8 @@
       "/home/tayou/Desktop/codes/bss-core/claude-plans",
       "/home/tayou/Desktop/codes/bss-core/v1/claude-plans",
       "C:\\Users\\pitin\\Desktop\\dev\\.claude\\skills",
-      "c:\\Users\\pitin\\Desktop\\dev"
+      "c:\\Users\\pitin\\Desktop\\dev",
+      "/home/tayou/.claude/skills"
     ]
   },
   "hooks": {
@@ -227,5 +258,6 @@
   "statusLine": {
     "type": "command",
     "command": "printf '${debian_chroot:+($debian_chroot)}\\033[01;32m%s@%s\\033[00m:\\033[01;34m%s\\033[00m' \"$(whoami)\" \"$(hostname -s)\" \"$(pwd)\""
-  }
+  },
+  "model": "sonnet[1m]"
 }
