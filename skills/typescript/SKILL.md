@@ -191,6 +191,23 @@ interface CraneOptions { config: CraneConfig }
 
 **`undefined!` 허용 예외**: `dispose()` 메서드에서 리소스 해제 목적으로 프로퍼티를 강제 초기화할 때는 `undefined!`를 허용한다. 이는 dispose 후 GC가 참조를 회수할 수 있도록 하는 관용적 패턴이다. 단, dispose 메서드 외부에서는 사용하지 않는다.
 
+**지역 변수 분리로 `as` 제거**: 타입 가드 함수(`isXxx(value): value is T`) 적용 후에도 `as`가 필요한 경우, 대상 값을 **지역 변수에 먼저 할당**하면 TypeScript가 타입을 좁혀주어 `as`를 제거할 수 있다.
+
+```ts
+// ❌ Bad — 배열 인덱스 접근 후 타입 가드가 작동하지 않아 as 필요
+if (!isRecord(_acc[_name])) { _acc[_name] = {}; }
+return _acc[_name] as Record<string, unknown>;
+
+// ✅ Good — 지역 변수로 분리하면 타입 가드 작동, as 불필요
+const child = _acc[_name];
+if (isRecord(child)) {
+    return child;  // child: Record<string, unknown> — 자동 좁혀짐
+}
+const newChild: Record<string, unknown> = {};
+_acc[_name] = newChild;
+return newChild;
+```
+
 ```
 // ✅ Good — 인터페이스로 해결
 class FEnet implements CommHandler { ... }
