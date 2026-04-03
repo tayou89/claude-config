@@ -442,7 +442,7 @@ const { consumerTag } = await this._channel.consume(this._queueName, (msg) => {
 
 ## try-catch 범위
 
-특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다. **동일한 에러 처리를 하는 try-catch를 중첩하지 않는다.**
+특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다. **동일한 에러 처리를 하는 try-catch를 중첩하지 않는다.** `await`과 `.catch()`를 혼용하지 않고, `async/await` 함수 내에서는 반드시 `try/catch`로 에러를 처리한다.
 
 ```
 // ✅ Good — 하나의 try-catch로 충분
@@ -469,6 +469,33 @@ write = async (addr, values, type, callback) => {
     } catch (error) {
         callback(undefined, error.message);      // 안쪽과 동일
     }
+};
+
+// ❌ Bad — await과 .catch() 혼용
+updateStatus = async (data) => {
+    if (data) {
+        await this.opServer.updateDeviceStatus(data).catch((error) => {
+            this.error('업데이트 실패: ', error);
+        });
+    }
+};
+
+// ✅ Good — 구간별로 다른 에러 처리가 필요한 경우의 부분 try-catch
+doWork = async () => {
+    try {
+        await apiA();
+    } catch (error) {
+        this.error('A 실패, 재시도', error);
+        await apiA();
+    }
+
+    try {
+        await apiB();
+    } catch (error) {
+        this.error('B 실패, 무시하고 계속', error);
+    }
+
+    await apiC(); // 이건 실패하면 상위로 throw
 };
 ```
 
