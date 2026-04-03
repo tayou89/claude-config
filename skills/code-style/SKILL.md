@@ -502,6 +502,39 @@ const unsub = scadaWs.onBroadcast('warehouse/status', h)
 const h = (data) => { ... }
 ```
 
+## check vs is 네이밍 규칙
+
+| 접두사 | 역할 | 반환값 | 예시 |
+|--------|------|--------|------|
+| `check` | 전제조건 검증, 실패 시 throw | `void` | `checkConnection()`, `checkHealth()` |
+| `is` | 상태 조회 | `boolean` | `isConnected()`, `isHealthy()` |
+
+- `check` 함수는 **검증만 수행**하고 값을 반환하지 않는다. 조건 불충족 시 throw한다.
+- `is` 함수는 **boolean을 반환**하고 throw하지 않는다. 상태 확인 용도.
+- boolean을 반환해야 하는데 `check`로 이름 지으면 안 되고, throw해야 하는데 `is`로 이름 지으면 안 된다.
+
+```
+// ✅ Good
+checkHealth = async () => {
+    const response = await this._axios.get('/actuator/health');
+
+    if (response.data?.status !== 'UP') {
+        throw new Error('운영서버 상태 이상: ' + response.data?.status);
+    }
+};
+
+isConnected = () => {
+    return this._commStatus.status == COMM_STAT.OK;
+};
+
+// ❌ Bad — check인데 boolean 반환
+checkHealth = async () => {
+    const response = await this._axios.get('/actuator/health');
+
+    return response.data?.status === 'UP';
+};
+```
+
 ## 전제조건 검증 패턴 (check 함수)
 
 장비 제어 등 동작 전 전제조건을 검증하는 경우, **`check` 접두사의 개별 함수로 분리**하고 복합 함수로 조합한다.
