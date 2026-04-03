@@ -444,6 +444,38 @@ const { consumerTag } = await this._channel.consume(this._queueName, (msg) => {
 
 특별한 이유가 없다면 try-catch는 **함수 본문 전체를 감싸는 형태**로 작성한다. 부분적 try-catch는 에러 처리가 구간별로 달라야 할 때만 사용한다. **동일한 에러 처리를 하는 try-catch를 중첩하지 않는다.** `await`과 `.catch()`를 혼용하지 않고, `async/await` 함수 내에서는 반드시 `try/catch`로 에러를 처리한다.
 
+**핸들러/콜백 함수**(이벤트 핸들러, `setInterval`/`setTimeout` 콜백, Express 미들웨어 등)에서는 **변수 선언을 포함한 함수 본문 전체**를 try-catch로 감싼다. 이런 함수는 에러가 상위로 전파될 곳이 없어 uncaught error가 프로세스를 크래시시킬 수 있다.
+
+```
+// ✅ Good — 핸들러: 변수 선언 포함 전체 감싸기
+startStatusCheck = () => {
+    this.timer = setInterval(async () => {
+        try {
+            const status = this.collectStatus();
+            const updatedAt = new Date().getTime();
+
+            await this.updateStatus(status, updatedAt);
+        } catch (error) {
+            this.error('상태 업데이트 실패: ', error);
+        }
+    }, 3000);
+};
+
+// ❌ Bad — 핸들러: 변수 선언이 try 밖에 있어 에러 시 크래시
+startStatusCheck = () => {
+    this.timer = setInterval(async () => {
+        const status = this.collectStatus();  // 여기서 throw되면 uncaught
+        const updatedAt = new Date().getTime();
+
+        try {
+            await this.updateStatus(status, updatedAt);
+        } catch (error) {
+            this.error('상태 업데이트 실패: ', error);
+        }
+    }, 3000);
+};
+```
+
 ```
 // ✅ Good — 하나의 try-catch로 충분
 write = async (addr, values, type, callback) => {
