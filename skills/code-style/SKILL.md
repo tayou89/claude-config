@@ -156,23 +156,42 @@ if (data != undefined) {
 파일 상단은 다음 순서로 구성한다. 각 섹션 사이에는 **빈 줄 하나**로 구분한다. (TypeScript 커뮤니티 일반 관행 — 상수가 타입에 의존할 수 있으므로 타입을 먼저 정의)
 
 1. **import / require** — 모든 외부 의존성
-2. **type / interface 정의** — 해당 파일에서 사용하는 타입/인터페이스
-3. **상수/변수 선언** — `const`, `let` 등
+2. **type 별칭** — `type Foo = ...` (단순 별칭, 유니온, 유틸리티 타입 등)
+3. **interface 정의** — `interface Foo { ... }` (구조체/객체 형태)
+4. **상수/변수 선언** — `const`, `let` 등
+
+type과 interface를 분리하는 이유: type은 보통 짧은 별칭이고, interface는 여러 줄의 구조체 정의. type을 먼저 모아두면 interface가 type을 참조할 때 자연스럽고, 파일 상단에서 빠르게 훑기 좋다.
 
 ```ts
-// ✅ Good
+// ✅ Good — type → interface → const 순서
 import Logger = require('../util/logger');
-import { EventEmitter } from 'events';
+import PROPERTY = require('../define/property');
 
-interface FooOptions {
-    host: string;
-    port: number;
+type BatteryStatusType = (typeof PROPERTY.BATTERY_STATUS)[keyof typeof PROPERTY.BATTERY_STATUS];
+type FaultObject = { [key: string]: boolean | number };
+interface ChargeTask {
+    startTime: number;
+    endTime: number;
+    faultCode: number;
+    fault: FaultObject | undefined;
+}
+interface ChargeSampleData {
+    battery: ChargeSampleBattery;
+    charger: ChargeSampleCharger;
 }
 
 const DEFAULT_TIMEOUT = 3000;
 const { SOME_CONSTANT } = PROPERTY;
 
-// ❌ Bad — 상수가 타입 정의보다 먼저 오는 경우
+// ❌ Bad — type과 interface가 섞여 있음
+import Logger = require('../util/logger');
+
+interface ChargeTask { ... }
+type BatteryStatusType = ...;    // ← interface 뒤에 type
+interface ChargeSampleData { ... }
+type FaultObject = ...;          // ← 또 interface 뒤에 type
+
+// ❌ Bad — 상수가 타입 정의보다 먼저
 import Logger = require('../util/logger');
 const { SOME_CONSTANT } = PROPERTY;
 
