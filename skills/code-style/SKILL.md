@@ -549,16 +549,18 @@ throw new Error('agv.control is null');
 
 ## 약어 사용 자제
 
-변수명, 함수명 등에 **약어(abbreviation)를 가능한 사용하지 않는다**. 이름이 너무 길어지지 않는 한 전체 단어를 사용한다.
+변수명, 함수명, **타입/인터페이스명** 등에 **약어(abbreviation)를 가능한 사용하지 않는다**. 이름이 너무 길어지지 않는 한 전체 단어를 사용한다.
 
 ```
 // ✅ Good
 const unsubscribe = scadaWs.onBroadcast('warehouse/status', handler)
-const handler = (data) => { ... }
+type ChargeSampler = () => Partial<ChargeSampleData>;
+interface TaskControlConfig { ... }
 
 // ❌ Bad
 const unsub = scadaWs.onBroadcast('warehouse/status', h)
-const h = (data) => { ... }
+type SamplerFn = () => Partial<ChargeSampleData>;
+interface TaskCtrlCfg { ... }
 ```
 
 ## check vs is 네이밍 규칙
