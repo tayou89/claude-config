@@ -261,5 +261,8 @@
   "statusLine": {
     "type": "command",
     "command": "printf '${debian_chroot:+($debian_chroot)}\\033[01;32m%s@%s\\033[00m:\\033[01;34m%s\\033[00m' \"$(whoami)\" \"$(hostname -s)\" \"$(pwd)\""
+  },
+  "enabledPlugins": {
+    "discord@claude-plugins-official": true
   }
 }

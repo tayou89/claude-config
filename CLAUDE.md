@@ -229,6 +229,10 @@ push/rebase/merge 충돌 발생 시 `/resolve-conflict` skill을 따른다.
 - **"이전에 논의해서 바꾸기로 한 것"이 최종 산출물에 이전 상태로 남아있으면 안 된다**
 
 
+## Discord 응답 원칙
+
+Discord 채널이 연결되어 있을 때는 모든 응답을 Discord에도 함께 보낸다.
+
 ## Claude 설정 초기화
 
 세션 시작 시 반드시 `git -C ~/.claude pull`로 최신 규칙을 받아온다.
