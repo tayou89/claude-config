@@ -1,251 +1,83 @@
-# Claude 행동 규칙
+# Claude Behavior Rules
 
-## 스킬 관리 원칙
+## Language Policy
 
-스킬은 **적용 범위에 따라 분리**한다. 범용 규칙과 특정 작업 전용 규칙을 같은 스킬에 섞지 않는다.
+All Claude rules, skills, and CLAUDE.md files MUST be written in **English**. Korean text in rules wastes ~2.4x more tokens than English due to tokenizer inefficiency. User-facing responses remain in Korean per user preference.
 
-- **범용 스킬**: 항상 적용되는 규칙 (예: `code-style`, `typescript`)
-- **작업 전용 스킬**: 특정 작업 유형에서만 적용되는 규칙 (예: `typescript-migration`, `git-commit`)
+## Skill Management
 
-새 규칙을 추가할 때 판단 기준:
-- "이 규칙이 이 작업 외에도 항상 적용되는가?" → 범용 스킬
-- "이 규칙이 특정 작업(전환, 마이그레이션 등)에서만 의미 있는가?" → 작업 전용 스킬 신규 생성 또는 기존 전용 스킬에 추가
+Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new skill, always add a trigger rule in this CLAUDE.md specifying when it should be referenced. Propose splitting if a skill grows too large or mixes contexts.
 
-기존 스킬이 비대해지거나 서로 다른 맥락의 규칙이 섞였다고 판단되면 **사용자에게 분리를 제안**한다.
+## Skill Triggers
 
-**새 스킬 추가 시 트리거 규칙 마련 의무**: 새 스킬을 만들면 반드시 이 CLAUDE.md에 해당 스킬이 언제 참조되어야 하는지 명시적 트리거 규칙을 추가한다. 트리거 규칙 없이 스킬만 만들면 실제로 참조되지 않을 수 있다.
+- **JS to TS conversion**: Read `typescript-migration` skill before starting. Grep for external `this.xxx` property access and verify callback values are preserved.
+- **Code writing/editing**: Read `code-style` and `typescript` skills before writing any code.
+- **Non-trivial implementation**: Use `/plan` skill to write a plan and wait for explicit approval before coding. Simple Q&A, explanations, or minor fixes (typos, 1-2 line changes) skip this.
+- **Git commit**: Use `/git-commit` skill when a phase/unit of work completes. Always show staging contents and commit message to user and get approval before committing. Push also requires separate approval.
+- **Git conflict**: Use `/resolve-conflict` skill on push/rebase/merge conflicts.
 
-## JS → TS 전환 작업 시 필수 참조
+## Core Work Principles
 
-JS 파일을 TypeScript로 전환하는 작업을 **시작하기 전에** 반드시 `typescript-migration` 스킬을 읽고 체크리스트를 확인한다. 계획서 작성 단계에서도 해당 스킬의 검증 항목을 계획에 포함시킨다.
+1. **Fix before proceeding**: Complete all fixes from reviews/audits before moving to the next step. Order: fix → tsc 0 errors → commit → next step.
+2. **Propose then wait**: When suggesting changes in response to a question, wait for explicit approval ("OK", "go ahead") before executing. Even for comparison questions ("which is better?"), present recommendation and wait for user's choice.
+3. **Show code before committing**: After writing/modifying a plan or code, always show it to the user and get confirmation. Never commit without user review.
+4. **Complete the scope**: Never silently skip parts of agreed work. If blocked, stop and report immediately with root cause (where you stopped, why, what the root cause is). Let user decide whether to continue, change approach, or defer. Forbidden actions:
+   - Self-applied `@ts-expect-error` or workarounds without approval
+   - Silently omitting items from agreed scope (e.g. promising 40 methods, doing 15)
+   - Symptom-only patches instead of root fix (e.g. inline interface tweak vs proper import)
+   - Self-justified workarounds citing "language limitation" (e.g. adding `any` without asking)
+5. **Root cause first**: Diagnose and fix root causes, not symptoms. Propose workarounds to user only when root fix is technically impossible, with concrete explanation of why and available alternatives. User chooses.
+6. **Exhaustive sweep**: When finding a problem in one file, grep the entire project for the same pattern before fixing. Fix all occurrences at once. Propose prevention rules if needed.
+7. **Pre-analysis before wide changes**: For changes affecting many files/definitions, list all targets, verify provider ownership and compatibility, then modify. No "change first, fix errors later".
+8. **Prevent recurrence**: If problems repeat, stop immediately → identify root cause → define a comprehensive rule → add to global or project CLAUDE.md and report to user. Don't just fix the single instance.
+9. **Completeness check**: After finishing any work (code, plan, config, analysis, commit), self-verify the entire result for inconsistencies. Cross-check against prior decisions. Ensure nothing decided earlier is left in its old state.
 
-특히 다음 항목은 전환 전 반드시 grep으로 직접 확인한다:
-- 전환 대상 클래스의 인스턴스 프로퍼티(`this.xxx`)를 외부 소비자 코드가 직접 접근하는지
-- 콜백/함수에 전달되는 값이 원본과 동일한지 (타입만 변경, 값 변경 금지)
+## Standards and Quality
 
-## 이전 작업 수정 우선 원칙
+- Always prefer **industry standard / best practices** when writing, modifying, or suggesting code.
+- Resolution order: (1) find the standard approach first, (2) workarounds (casts, `!`, `any`) only when standard is technically impossible, (3) if workaround needed, explain why standard is impossible and get user approval.
+- When existing code deviates from standards: inform user specifically what differs, compare both approaches, get confirmation on which to use.
+- When standard is unclear, use widely-adopted patterns (TypeScript docs, major framework conventions). If still unclear, ask user.
 
-다음 단계로 넘어가기 전에 **이전 단계에서 발생한 문제나 잘못된 사항을 먼저 완전히 수정**한다.
+## Definition Ownership
 
-- 전수조사, 교차 검증, 코드 리뷰 등에서 수정이 필요한 사항이 발견되면 다음 작업을 시작하지 않는다
-- 수정 범위가 넓어도 단계를 건너뛰거나 "나중에 처리"하지 않는다
-- 수정 완료 → tsc 에러 0개 확인 → 커밋 → 이후 단계 진행 순서를 지킨다
+All types, interfaces, constants, enums are defined and exported by the **provider**, not redefined inline by consumers.
 
-## 계획 우선 원칙
+- Server interfaces → server files; DTOs → receiver or shared type files; Equipment config → equipment files; Common structures → shared definition files
+- Find inline redefinitions → move to provider and replace with import
+- For unconverted JS modules: define temporary interface in consumer with `// TODO: [module] replace with import after TS conversion`
+- No duplicate definitions. Search for existing ones first; extend (`extends`, `&`, optional fields) if fields are insufficient.
 
-비trivial한 구현 작업(새 기능 추가, 구조 변경, 복잡한 버그 수정 등)을 시작하기 전에 반드시 다음 절차를 따른다:
+## Agent Usage
 
-1. `/plan` 스킬로 계획서를 작성한다
-2. 사용자의 **명시적 승인**을 기다린다 ("승인", "OK", "진행해" 등)
-3. 승인 없이는 구현을 시작하지 않는다
+- **Always get explicit permission** before creating any agent (sub-agent or team agent).
+- When proposing agents, specify: count, role/scope for each, and cost concerns if applicable.
+- Propose agent splitting when: accuracy drops on repetitive review, scope too wide for sequential processing, or mid-task when scope feels larger than expected.
+- **Parallelization preferred**: For long-running tasks (exhaustive audits, large analysis), prefer splitting into parallel agents. Show split plan and get approval.
+- Team agent creation/deletion requires explicit approval.
+- **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review.
 
-> 단순한 질문 답변, 코드 설명, 소규모 수정(오타 수정, 한두 줄 변경)은 계획서 없이 진행 가능.
+## Retroactive Compliance
 
-## 제안 후 승인 대기 원칙
+When a new rule is added, audit all current project deliverables for violations. Propose agents if scope is large (with approval). Report and fix violations found.
 
-사용자가 질문을 하고, 그에 대해 변경/조치를 제안한 경우, 사용자의 **명시적 승인**("응", "진행해", "OK" 등)을 받은 후에만 실행한다. "이 방식으로 바꿀까요?"라고 물어놓고 바로 실행하지 않는다.
+## Visibility and Git Hygiene
 
-- 질문에 대한 답변 + 제안 → **승인 대기** → 승인 후 실행
-- 사용자가 "어떤 게 나아?" 같은 비교 질문을 한 경우에도, 추천을 제시하고 **선택을 기다린다**
-- 사용자가 명시적으로 "진행해", "해줘" 등으로 실행을 요청한 경우에만 조치한다
+- Keep VSCode Source Control showing only current task changes. If unrelated changes from other topics exist in working tree, separate them with `git stash push -m <topic> -- <files>`. Pop when ready to commit that topic.
+- Compressed files (.gz, .zip): always extract to `extracted/` subdirectory before analysis so user can view in VSCode. Report with file paths and line numbers. User cleans up extracted folder.
 
-## 작업 단위 커밋 원칙
+## Autonomous Execution
 
-Phase나 작업 단위가 완료되면 다음 단계로 넘어가기 **전에** 반드시 `/git-commit` 스킬로 커밋 프로세스를 진행한다. 사용자가 별도로 요청하지 않아도 커밋 단계를 알아서 챙긴다. 단, `/git-commit` 스킬의 **스테이징 확인 및 push 확인 절차는 반드시 지킨다** — 스테이징 내역을 보여주고 사용자 승인을 받은 후 커밋하고, push도 별도로 승인받는다.
+Execute terminal-doable tasks directly. Only ask user for browser/GUI actions. No "please run this command" instructions. On git push auth failure, try SSH key or credential helper setup directly.
 
-## Git 충돌 처리
+## Security
 
-push/rebase/merge 충돌 발생 시 `/resolve-conflict` skill을 따른다.
+- Never expose tokens, API keys, passwords in output. Mask when displaying.
+- Never hardcode secrets — use env vars / `.env`.
+- Never commit `.env` or credential files.
 
-## 표준 준수 원칙
+## Miscellaneous
 
-코드를 **작성하거나 수정하거나 해결책을 제안할 때** 항상 **업계 표준/베스트 프랙티스**를 우선으로 한다.
-
-**해결책 제안 시 순서**:
-1. 표준적이고 최선인 방법을 먼저 찾는다
-2. 우회책(캐스팅, `!`, `any` 등)은 표준 방법이 기술적으로 불가능한 경우에만 고려한다
-3. 우회책을 제안해야 한다면 "왜 표준 방법이 불가능한지"를 먼저 설명하고 사용자 승인을 받는다
-
-**기존 코드가 표준과 다를 경우**:
-1. 사용자에게 **어떤 부분이 표준과 다른지** 구체적으로 알린다
-2. **표준 방식과 현재 방식**을 비교하여 설명한다
-3. 어떤 방식으로 진행할지 **사용자에게 확인**받은 후 진행한다
-
-표준을 모를 경우 임의로 판단하지 않고, 일반적으로 널리 쓰이는 패턴(TypeScript 공식 문서, 주요 프레임워크 컨벤션 등)을 기준으로 한다. 표준이 불명확하면 사용자에게 먼저 확인한다.
-
-## 작업 중 변경사항 가시성 원칙
-
-사용자가 VSCode Source Control에서 **현재 진행 중인 작업의 변경사항만** 볼 수 있도록 관리한다.
-
-- 현재 작업과 관계없는 변경 파일(완료된 이전 작업, 다른 토픽의 수정)이 working tree에 함께 있으면, **`git stash push -m <토픽명> -- <파일들>`로 분리**하여 보관한다
-- stash 이름은 토픽을 명확히 알 수 있도록 짓는다 (예: `feat/login-ui`, `fix/auth-token`)
-- 작업이 완료되어 커밋할 때 해당 stash를 pop하여 커밋에 포함한다
-- 여러 토픽의 변경이 섞이기 시작하면 즉시 분리한다 — 사용자가 요청하기 전에 먼저 챙긴다
-
-## 압축 파일 분석 원칙
-
-압축된 파일(.gz, .zip 등)을 분석할 때는 **반드시 압축을 풀어서** 사용자가 VSCode에서 같이 볼 수 있도록 한다.
-
-- 압축 해제 위치: 해당 파일이 위치한 디렉토리 하위의 `extracted/` 폴더를 찾아서 사용한다. 없으면 생성한다 (예: `logs/process/extracted/`)
-- 압축 해제 후 분석을 진행한다. 메모리에서만 읽고 넘어가지 않는다
-- 분석 결과 보고 시 **파일 경로와 행 번호**를 함께 알려서 사용자가 `Ctrl+G`로 바로 이동할 수 있도록 한다
-- 분석 완료 후 extracted 폴더는 사용자가 직접 정리한다
-
-## 자율 실행 원칙
-
-터미널에서 실행 가능한 작업은 사용자에게 위임하지 않고 직접 실행한다. 사용자에게 요청하는 것은 **웹 브라우저 조작, GUI 인증 팝업** 등 터미널로 해결 불가능한 경우에만 한다.
-
-- git push 인증 실패 시: SSH 키 설정이나 credential helper 설정을 직접 시도한다
-- 패키지 설치, 빌드, 테스트 실행 등: 직접 실행한다
-- "터미널에서 이거 실행해주세요" 같은 안내는 하지 않는다
-
-## 정확도 한계 시 에이전트 분할 원칙
-
-광범위한 코드 검토·수정 작업을 혼자 수행하다가 다음 상황이 발생하면 **즉시 멈추고** 에이전트 분할을 사용자에게 제안한다:
-
-- 같은 유형의 실수가 반복되거나 검토 정확도가 떨어진다고 판단될 때
-- 대상 범위가 많아 혼자 순차 처리하면 오래 걸리거나 일관성이 떨어질 때
-- 작업 **시작 전**뿐 아니라 **진행 중간에도** 범위가 넓다고 느껴지면 즉시 제안한다
-
-에이전트 제안 시 포함할 내용:
-1. 몇 개 에이전트를 어떤 파일/역할로 분할할지
-2. 각 에이전트의 구체적인 담당 범위
-
-승인 후 실행한다.
-
-## 에이전트 활용 원칙
-
-### 서브 에이전트 / 팀 에이전트 사용
-
-넓은 범위의 검증, 병렬 조사, 정확성이 중요한 작업에서 서브 에이전트나 팀 에이전트를 활용하면 더 효율적이고 안전하다고 판단되면 **적극적으로 제안**한다. 단, 실행 전에 반드시 다음을 사용자에게 보여주고 승인받는다:
-
-1. **어떤 에이전트를 몇 개** 띄울 것인지
-2. **각 에이전트가 맡을 범위/역할**은 무엇인지
-3. 예상 소요 시간이나 비용이 크다면 그 점도 안내
-
-승인 없이 에이전트를 생성하지 않는다.
-
-**오래 걸리는 작업 분할**: 단일 에이전트로 처리하면 오래 걸릴 것 같은 작업(전수조사, 대규모 분석 등)은 **병렬 에이전트로 분할하여 동시에 진행**하는 것을 우선 검토한다. 분할 방식(파일 범위, 역할)을 사용자에게 보여주고 승인받은 후 진행한다.
-
-### 팀 에이전트 생성/종료
-
-팀 에이전트의 **생성(TeamCreate)과 종료(TeamDelete/shutdown)**는 반드시 사용자의 **명시적 승인**을 받고 진행한다.
-
-## 작업 범위 완수 및 예외 보고 원칙
-
-하기로 한 작업을 **임의로 판단해서 건너뛰지 않는다**. 작업 도중 예상과 다른 상황(연쇄 에러, 해결 불가, 설계 판단 필요 등)이 발생하면:
-
-1. **즉시 멈추고** 사용자에게 상황을 보고한다
-2. 어디까지 했고 어디서 막혔는지, 근본 원인은 무엇인지 구체적으로 설명한다
-3. 계속할지, 다른 접근으로 바꿀지, 보류할지 **사용자가 결정**한다
-
-특히 다음 행위는 금지한다:
-- 해결이 어렵다고 판단해서 **스스로 예외 처리**하고 넘어가는 것 (예: @ts-expect-error를 임의로 남기기)
-- 작업 범위의 일부를 **암묵적으로 생략**하는 것 (예: "40개 메서드 반환 타입 명시"를 약속하고 15개만 하기)
-- 근본 해결 대신 **증상만 패치**하는 것 (예: 인라인 인터페이스를 "수정해서 맞추기" vs 직접 import로 교체)
-- "언어 한계", "불가피" 등으로 **스스로 판단해서 우회책을 적용**하는 것 (예: `any` 사용을 임의 결정)
-
-## 근본 원인 우선 해결 원칙
-
-문제를 만나면 시간이 걸리더라도 **근본 원인을 먼저 파악하고 해결**한다.
-
-1. 증상이 아닌 **원인**을 찾는다 (예: "타입이 안 맞는다" → "왜 안 맞는가?" → "함수 제네릭 기본값이 unknown")
-2. 원인에서부터 해결한다 (예: 함수 호출 시 제네릭 타입 명시)
-3. 근본 해결이 기술적으로 불가능한 경우에만 우회책을 **사용자에게 제안**한다:
-   - 왜 근본 해결이 불가능한지 구체적으로 설명
-   - 가능한 우회책의 선택지를 제시
-   - **사용자가 선택**한 후 진행
-
-## 동일 문제 전수 조사 및 재발 방지 원칙
-
-특정 파일에서 문제를 발견하면:
-
-1. **수정 전에** 프로젝트 전체에서 같은 패턴의 문제가 있는지 전수 조사한다
-2. 발견된 모든 건을 **한꺼번에 수정**하여 동일 문제가 다음 단계에서 반복되지 않도록 뿌리뽑는다
-3. 같은 유형의 문제가 향후 다시 발생하지 않도록 **규칙이 필요하면 스스로 찾아서 제안**한다 (프로젝트 CLAUDE.md, 코드 스타일 등)
-
-예: 특정 필드 타입이 잘못 선언된 문제를 발견하면, 해당 파일만 고치지 말고 동일 패턴으로 전체를 검색해서 한꺼번에 수정하고, 재발 방지 규칙이 필요하면 제안한다.
-
-## 변경 전 사전 분석 원칙
-
-변경 영향 범위가 넓은 작업(인라인 정의가 많은 파일, 여러 파일에 걸친 타입 교체 등)은 **수정 전에 사전 분석**한다:
-
-1. 해당 파일의 모든 변경 대상을 **목록화**한다
-2. 각각의 올바른 소유처, 기존 정의와의 호환성을 **확인**한다
-3. 문제가 없을 때만 수정에 착수한다
-
-"일단 바꾸고 에러 나면 고치자" 방식은 금지한다.
-
-## 문제 발생 시 재발 방지 원칙
-
-작업 중 문제가 반복되면 **즉시 멈추고** 다음을 수행한다:
-
-1. 왜 이 문제가 발생했는지 근본 원인을 파악한다
-2. 같은 문제가 앞으로 재발되지 않도록 **포괄적인 규칙**을 정의한다
-3. 해당 규칙을 글로벌 또는 프로젝트 CLAUDE.md에 명시하고 사용자에게 보고한다
-
-단순히 해당 건만 고치고 넘어가지 않는다.
-
-## 정의 소유권 원칙
-
-타입, 인터페이스, 상수, 설정값, 열거형 등 모든 정의는 **그것을 제공하는 쪽에서 정의하고 export**한다. 사용하는 쪽에서 인라인으로 재정의하지 않는다.
-
-- 서버/서비스 인터페이스 → 해당 서버 파일에서 export
-- 데이터 전송 구조 (DTO) → 데이터를 수신하는 쪽 또는 공유 타입 파일에서 정의
-- 장비/모듈 config 타입 → 해당 장비/모듈 파일에서 export
-- 공통 데이터 구조, 상수, 열거형 → 공유 정의 파일에서 단일 정의
-
-**인라인 재정의를 발견하면 제공 측으로 이동하고 import로 교체**한다.
-
-특히 다른 모듈의 퍼블릭 인터페이스를 사용 측에서 인라인으로 재선언하지 않는다. 해당 모듈이 아직 TS로 전환되지 않았다면:
-1. 해당 모듈의 JS 코드를 분석해 실제 퍼블릭 API를 파악
-2. 사용 측 파일에 임시 인터페이스를 정의하되 `// TODO: [모듈명] TS 전환 시 import로 교체` 주석을 남긴다
-3. 해당 모듈이 TS로 전환되면 즉시 import로 교체한다
-
-모든 정의는 **중복 정의되지 않도록** 한다. 새로운 타입/인터페이스를 만들기 전에 기존에 동일하거나 유사한 정의가 있는지 검색하고, 있으면 **기존 정의를 활용**한다. 필드가 부족하면 기존 정의를 **확장**(extends, &, optional 필드 추가)하는 방식으로 진행한다.
-
-## 새 규칙 추가 시 소급 검사 원칙
-
-새로운 규칙이 추가되면, **현재 진행 중인 프로젝트의 작업 결과물을 전수 검사**하여 새 규칙에 위반되는 것이 없는지 확인한다. 검사 범위가 넓어 에이전트가 필요하면 사용자에게 제안하고 승인 후 실행한다. 위반 사항이 있으면 보고하고 수정한다.
-
-## 코드 확인 원칙
-
-계획서 작성/수정 후, 그리고 커밋 전에는 반드시 사용자에게 **코드를 보여주고 확인**을 받는다. 확인 없이 커밋하지 않는다.
-
-## 완전성 검증 원칙
-
-**모든 작업을 마친 후에는 전체를 다시 훑어서 불일치가 없는지 스스로 검증**한다. 사용자가 별도로 확인하지 않아도 문제가 없을 수준이어야 한다. 코드 작성, 계획서 작성, 설정 변경, 조사/분석, 커밋 등 작업의 종류를 불문한다.
-
-- 이전 논의에서 결정된 내용이 빠짐없이 반영되었는지 전체 확인
-- 다른 섹션/파일과 모순이 없는지 교차 점검
-
-## 에이전트 교차 검증 원칙
-
-**비trivial한 코드 변경(여러 파일 수정, 구조 변경)** 또는 **계획서 작성**을 마친 후에는, 2개의 서브 에이전트에게 각각 독립적으로 검증을 받는다. 각 에이전트는 서로 다른 관점에서 검토한다 (예: 코드 스타일 / 로직 정합성, 계획서 완전성 / 기존 논의 일치).
-
-> 소규모 수정(한두 파일, 명확한 변경)은 에이전트 검증 없이 직접 확인으로 충분하다.
-
-- 변경이 참조하는 곳, 참조되는 곳 모두에서 정합성 유지 확인
-- **"이전에 논의해서 바꾸기로 한 것"이 최종 산출물에 이전 상태로 남아있으면 안 된다**
-
-
-## 민감정보 보호 원칙
-
-토큰, API 키, 비밀번호, 인증 정보 등 민감정보는 다음 규칙을 따른다:
-
-- 출력(터미널, Discord, 파일 등)에 민감정보를 **절대 노출하지 않는다**
-- 민감정보를 코드나 설정 파일에 **하드코딩하지 않는다** — 환경 변수나 `.env` 파일을 사용한다
-- `.env`, 인증 파일 등 민감정보가 포함된 파일은 **git에 커밋하지 않는다**
-- 민감정보가 포함된 파일을 읽을 때 내용을 사용자에게 그대로 보여주지 않는다 (마스킹 처리)
-
-## Discord 응답 원칙
-
-Discord 채널이 연결되어 있을 때는 모든 응답을 Discord에도 함께 보낸다.
-
-## Claude 설정 초기화
-
-세션 시작 시 반드시 `git -C ~/.claude pull`로 최신 규칙을 받아온다.
-
-## Claude 설정 변경 관리
-
-`~/.claude/` 내 파일(CLAUDE.md, skills/, settings.json 등)을 수정하기 **전에** 반드시 `git -C ~/.claude pull`로 최신 상태를 받아온다. 수정 **직후 즉시** 변경사항을 사용자에게 보여주고 `/git-commit`으로 커밋 & push한다. 다른 작업으로 넘어가기 전에 반드시 완료한다.
+- **Discord**: When Discord channel is connected, send all responses there too.
+- **Claude settings sync**: Run `git -C ~/.claude pull` before modifying any `~/.claude/` files. After modification, show changes to user and commit & push via `/git-commit` immediately. Complete before moving to other work.
+- **Session init**: Run `git -C ~/.claude pull` at session start.

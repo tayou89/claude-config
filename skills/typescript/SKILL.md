@@ -1,717 +1,190 @@
 ---
 name: typescript
-description: TypeScript 코드 작성, 전환, 수정 시 적용할 규칙. .ts 파일을 생성하거나 편집할 때 자동으로 참조한다.
+description: TypeScript rules applied when writing, converting, or modifying .ts files. Automatically referenced when creating or editing TypeScript code.
 user-invocable: false
 ---
 
-# TypeScript 규칙
+# TypeScript Rules
 
-TypeScript 코드를 작성하거나 수정할 때 아래 규칙을 따른다.
+Apply these rules when writing or modifying TypeScript code.
 
-## 빌드 및 경고 품질 기준
+## Build Quality
 
-- `npx tsc --noEmit` 에러 **0개**를 유지한다
-- IDE 경고(ESLint, TypeScript 힌트) **0개**를 목표로 한다. 경고가 발생하면 코드 수정 또는 ESLint 규칙 조정으로 해결한다
-- ESLint의 JS 기본 규칙(`no-unused-vars`, `no-use-before-define`, `no-shadow`)은 TypeScript에서 오탐이 발생하므로 **off**하고, `@typescript-eslint/` 대응 규칙을 사용한다
+- Maintain `npx tsc --noEmit` with **0 errors**
+- Target **0 IDE warnings** (ESLint, TS hints). Fix via code changes or ESLint rule adjustments.
+- Disable JS-native ESLint rules (`no-unused-vars`, `no-use-before-define`, `no-shadow`) that false-positive in TS. Use `@typescript-eslint/` equivalents.
 
-## 소스와 빌드 산출물
+## Source and Build Artifacts
 
-`.ts` 파일과 대응하는 `.js` 파일이 함께 존재하면, `.js`는 빌드 산출물이다. **반드시 `.ts` 파일을 수정하고 빌드(`tsc`)하여 `.js`를 생성**한다. `.js`를 직접 수정하지 않는다. 수정 전에 대응하는 `.ts` 파일이 존재하는지 항상 확인한다.
+When `.ts` and corresponding `.js` coexist, `.js` is a build artifact. **Always edit `.ts` and build with `tsc`** — never edit `.js` directly. Check for corresponding `.ts` before modifying any `.js`.
 
-- `.ts` 파일 수정 시 반드시 `tsc` 빌드 후 산출물(`.js`, `.js.map`, `tsconfig.tsbuildinfo`)을 함께 커밋한다
-- `.ts` 소스 파일과 그 빌드 산출물(`.js`, `.js.map`)은 **반드시 같은 커밋**에 포함한다. 소스와 빌드를 별도 커밋으로 분리하지 않는다
-- `tsconfig.tsbuildinfo`도 함께 커밋한다 (incremental build 캐시, 다른 개발자의 빌드 시간 단축)
+- After `.ts` changes, build and commit `.js`, `.js.map`, `tsconfig.tsbuildinfo` together.
+- `.ts` source and its `.js`/`.js.map` output MUST be in the **same commit**.
 
-## ESModule 문법 사용
+## ESModule Syntax
 
-`require()` / `module.exports` 대신 `import` / `export`를 사용한다. tsc가 CommonJS로 컴파일하므로 런타임 호환성에 문제없다.
+Use `import`/`export` instead of `require()`/`module.exports`. tsc compiles to CommonJS so runtime compatibility is preserved.
 
-**TS 파일 내 require 형식 통일**: TS 파일에서 `require()`를 사용해야 하는 경우(JS 소비자가 있는 모듈 등) 반드시 `import X = require(...)` 형태를 사용한다. `const X = require(...)`를 import문과 혼용하지 않는다.
+**require format in TS files**: When `require()` is needed (module with JS consumers), use `import X = require(...)` form only. Never mix `const X = require(...)` with import statements.
 
-```ts
-// ✅ Good — import 문으로 통일
-import Logger from '../util/logger';
-import PROPERTY = require('../define/property');  // JS 소비자 있는 모듈
+**Module with no JS consumers** → `import X from '...'` or `import { X } from '...'`
+**Module with JS consumers** → `import X = require('...')`
+**Type only** → `import type { X } from '...'`
 
-// ❌ Bad — const require와 import 혼용
-import Logger from '../util/logger';
-const PROPERTY = require('../define/property');  // import와 혼용 금지
-```
-
-**JS 소비자가 없는 모듈** → `import X from '...'` 또는 `import { X } from '...'`  
-**JS 소비자가 있는 모듈** → `import X = require('...')`  
-**타입만 필요한 경우** → `import type { X } from '...'`
-
-**모듈에서 일부 값만 필요한 경우 — named import로 직접 구조분해**: `esModuleInterop: true` 설정 하에서는 `export =` 모듈도 named import가 가능하다. 중간 변수를 만들어 구조분해하지 않고 import 시점에 바로 꺼낸다.
+**Named import for partial values**: With `esModuleInterop: true`, `export =` modules support named imports. Destructure at import time, don't create intermediate variables.
 
 ```ts
-// ✅ Good — import 시점에 직접 구조분해
+// Good
 import { WRITE_BLOCK, READ_BLOCK } from './crane-map';
-import { CHARGER_BATTERY_STAT, CHARGER_STATUS } from '../define/property';
 
-// ❌ Bad — 중간 변수를 통한 구조분해
+// Bad — intermediate variable
 import craneMapModule = require('./crane-map');
 const { WRITE_BLOCK, READ_BLOCK } = craneMapModule;
-
-import PROPERTY = require('../define/property');
-const { CHARGER_BATTERY_STAT, CHARGER_STATUS } = PROPERTY;
 ```
 
-단, 아래 경우는 `import X = require(...)` + 구조분해 패턴을 유지한다:
-- **`export = X` 방식 모듈** — `esModuleInterop`이 있어도 named import 불가 (tsc 2497 에러). `property.ts`, `*-map.ts` 등이 해당
-- 모듈 전체 참조가 필요한 경우 (`typeof module.FIELD` 타입 표현 등)
-- Logger, ThingExt, drivers 등 단일 값을 export하는 모듈
+Exceptions for `import X = require(...)` + destructure: `export = X` modules (tsc 2497 error), when full module reference is needed (`typeof module.FIELD`), single-value exports (Logger, ThingExt, drivers).
 
-```
-// ✅ Good
-import { Logger } from '../util/logger';
-import { CommHandler } from '../driver/common/types';
+## Named Export (No Default Export)
 
-// ❌ Bad
-const Logger = require('../util/logger');
-module.exports = Door;
-export = Door;
-```
+Always use named exports. Never `export default`. Enforces import name consistency, IDE refactoring accuracy, and multi-export consistency.
 
-## named export 사용 (default export 금지)
+## No import * (CJS Namespace Exception)
 
-`export default`를 사용하지 않는다. 항상 **named export** (`export { }` 또는 `export class/function/const`)를 사용한다.
+Don't use `import * as X`. Use named imports. **Exception**: CJS modules where `module.exports = { a: {...}, b: {...} }` makes the module itself a namespace (e.g. `jsmodbus`).
 
-- import 시 이름이 강제되어 오타를 컴파일 타임에 잡을 수 있다
-- IDE 자동완성/리팩터링이 정확하게 동작한다
-- 한 파일에서 여러 개 export할 때 일관적이다
+## Type Safety
 
-```
-// ✅ Good — named export
-export class Door extends ThingExt<DoorTags> { }
-export { Door };
-export { CommHandler, CommResponse };
+- **`as const`**: Use for immutable constant data (PLC maps, configs). If `readonly` compatibility issues arise, adjust the **receiving interface** to accept `readonly`, don't remove `as const`.
+- **`readonly` propagation**: Declare non-mutated array/object params as `readonly`.
+- **Type narrowing first**: Prefer type guards, generics, and interface design over `as` casts.
+- **Specific types**: Define concrete interfaces instead of `Record<string, unknown>`, `object`, `any`. Use base interface + extends for shared/individual fields. Get approval with justification if loose types are unavoidable.
 
-// ✅ Good — import 시 이름 강제
-import { Door } from '../equipment/door';
-import { CommHandler } from '../driver/common/types';
+## Access Modifiers and Naming
 
-// ❌ Bad — default export
-export default Door;
-export default class Door { }
+- **`public`**: Omit keyword (TS default)
+- **`protected`**: Explicit. For subclass-accessed members.
+- **`private`**: Explicit. For class-internal members.
 
-// ❌ Bad — import 시 아무 이름 가능 (오타/혼란)
-import Door from '../equipment/door';
-import Foo from '../equipment/door';     // 이것도 됨
-```
+Internal-only members MUST be `private` or `protected`.
 
-## import * 금지 (CJS 네임스페이스 모듈 예외)
+**`_` prefix**: Applied to `private` and `protected` members (properties and methods). Not applied to `public` members.
 
-`import * as X from '...'`를 사용하지 않는다. 필요한 것만 named import한다. 모듈 구조를 재설계하거나 named import로 대체한다.
+**Class member order**: public → protected → private. Within each: properties → constructor → methods.
 
-**예외**: CJS 모듈이 `module.exports = { a: { ... }, b: { ... } }` 형태로 **모듈 자체가 하나의 네임스페이스**인 경우, `import *`가 오히려 정확하다. 이 경우 `import { a }`로 named import하면 타입 선언은 동작하지만 실제 구조와 의미가 어긋난다.
+## Uniform Category Conventions
 
-판단 기준: 해당 라이브러리를 JS에서 `const lib = require('lib'); lib.a.b()` 패턴으로 사용하는가? → `import * as lib`가 맞다.
+Same-category modules (equipment, controllers, drivers) must share the **same level of type definition, naming patterns, and class structure**. Don't make one module specific while others are loose. When upgrading type precision, upgrade all in the category together.
 
-```
-// ✅ Good — named export 모듈
-import { UDP as FEnetUDP, TCP as FEnetTCP } from './fenet';
+## Typed Event/Callback Systems
 
-// ✅ Good — CJS 네임스페이스 모듈 (jsmodbus, 기타 CJS 전용 라이브러리)
-import * as jsmodbus from 'jsmodbus';
-// 원본 JS: const jsmodbus = require('jsmodbus'); jsmodbus.client.TCP(...)
-// import *가 이 패턴을 정확히 반영함
-
-// ❌ Bad — named export 모듈에 import * 사용
-import * as FEnet from './fenet';
-```
-
-## 타입은 항상 안전하고 정확한 쪽으로
-
-타입 관련 선택이 필요할 때는 항상 **더 안전하고 더 정확한 쪽**을 택한다. 편의를 위해 타입 안전성을 포기하지 않는다.
-
-- **`as const` 유지**: 불변 상수 데이터(PLC 맵, 설정값 등)에는 `as const`를 사용한다. `readonly` 호환 문제가 생기면 `as const`를 제거하지 않고 **받는 쪽 인터페이스에서 `readonly`를 수용**하도록 수정한다. 내부에서 배열을 변형하지 않는다면 파라미터 타입을 `readonly T[]`로 선언한다.
-- **`readonly` 전파**: 변형하지 않는 배열/객체 파라미터는 `readonly`로 선언하여 불변성을 타입 시스템으로 보장한다.
-- **타입 좁히기 우선**: 캐스팅(`as`)보다 타입 가드, 제네릭, 인터페이스 설계를 우선한다.
-- **구체적 타입 정의 원칙**: `Record<string, unknown>`, `object`, `any` 등 느슨한 타입 대신 **구체적 인터페이스를 정의**하는 것이 정석이다. 공통 필드는 베이스 인터페이스로, 개별 필드는 extends로 확장한다. 느슨한 타입을 사용해야 할 경우 사용자에게 근거와 함께 승인받는다.
-
-## 접근 제한자 및 명명 규칙
-
-### 접근 제한자
-- **`public`**: 키워드 생략 (TypeScript 기본값, 명시 불필요)
-- **`protected`**: 명시. 서브클래스에서 접근하는 멤버
-- **`private`**: 명시. 해당 클래스 내부에서만 사용하는 멤버
-
-클래스 내부에서만 사용하는 멤버는 **반드시** `private` 또는 `protected`로 선언한다. 접근 제한자 없이 외부에 노출되어서는 안 된다.
-
-### `_` 접두사 규칙
-
-`private` 또는 `protected`로 선언된 멤버(프로퍼티, 메서드 모두)는 이름 앞에 `_`를 붙인다. 외부에 공개된 `public` 멤버에는 `_`를 붙이지 않는다.
+Design event bus/emitter/callback systems with **typed patterns**. Define payload types per event in EventMap so callback params are never `unknown`/`any`.
 
 ```ts
-// ✅ Good
-class Charger extends ThingExt<ChargerTags> {
-    private _id: number;
-    private _status: number;
-    protected _logger: Logger;
-
-    getId = (): number => this._id;       // public — _ 없음
-    getStatus = (): number => this._status;
-
-    private _init = (): void => { ... };  // private 내부 메서드 — _ 있음
-}
-
-// ❌ Bad — private인데 _ 없음, 또는 public인데 _ 있음
-private id: number;
-_getId = (): number => this.id;
-```
-
-### 클래스 멤버 배치 순서
-
-클래스 멤버는 **public → protected → private** 순서로 배치한다. 각 그룹 내에서는 프로퍼티 → constructor → 메서드 순서를 따른다.
-
-```ts
-class Foo {
-    // 1. public 프로퍼티
-    name: string;
-
-    // 2. protected 프로퍼티
-    protected _logger: Logger;
-
-    // 3. private 프로퍼티
-    private _id: number;
-    private _status: number;
-
-    constructor(...) { ... }
-
-    // 4. public 메서드
-    getId = (): number => this._id;
-
-    // 5. protected 메서드
-    protected _handleEvent = (): void => { ... };
-
-    // 6. private 메서드
-    private _init = (): void => { ... };
-}
-```
-
-## 동일 카테고리는 동일 수준으로 통일
-
-같은 역할/카테고리에 속하는 모듈들은 **타입 정의 수준, 패턴, 구조를 통일**한다. 한 모듈만 다른 방식으로 하지 않는다.
-
-- **타입 정의 수준**: 동일 카테고리의 모듈이 `Record<string, unknown>`을 쓰면 전부 그렇게 하고, 구체 인터페이스를 쓰면 전부 구체적으로 한다. 한 모듈만 구체적이고 나머지가 느슨하면 안 된다. 수준을 올리려면 전부 함께 올린다.
-- **네이밍 패턴**: 인터페이스명(`XxxConfig`, `XxxOptions`, `XxxTags`), 변수명, 메서드명이 같은 카테고리 내에서 일관되어야 한다. 같은 역할을 하는 타입 패밀리(`WriteXxx` / `ReadXxx`)는 접두사/접미사 패턴을 통일한다 (예: `WriteMemoryModel` / `ReadMemoryModel` — `WriteBlockModel`처럼 혼용 금지).
-- **클래스 구조**: 같은 베이스 클래스를 상속하는 모듈들은 생성자 패턴, 초기화 흐름, dispose 패턴이 동일해야 한다.
-- **적용 범위**: equipment 장비 클래스, controller 컨트롤러, driver 드라이버 등 동일 디렉터리/역할의 모듈이 대상이다.
-
-변경 시 한 모듈만 바꾸면 불일치가 생길 수 있으므로, **같은 카테고리 전체에 영향을 주는 변경인지 확인**하고 필요하면 전부 함께 수정한다.
-
-```
-// ✅ Good — 전체 장비가 동일 수준
-interface DoorConfig { options: { driver: string; config: Record<string, unknown> } }
-interface CraneOptions { driver: string; config: Record<string, unknown> }
-
-// ✅ Good — as const 유지, 받는 쪽에서 readonly 수용
-const MAP = { model: [...] } as const;
-
-addWriteBlock = (block: { model: readonly WriteModel[] }): void => {
-    block.model.forEach(item => { ... });
-};
-
-// ❌ Bad — Crane만 구체적, 나머지는 느슨
-interface DoorConfig { options: { config: Record<string, unknown> } }
-interface CraneOptions { config: CraneConfig }
-```
-
-## 이벤트/콜백 시스템 타입 설계 원칙
-
-이벤트 버스, 이벤트 이미터, 콜백 기반 시스템은 **typed 패턴**으로 설계한다. 이벤트마다 페이로드 타입을 정확히 명시하여 콜백 파라미터에 `unknown`이나 `any`가 들어오지 않도록 한다.
-
-```ts
-// ✅ Good — 이벤트별 페이로드 타입을 EventMap으로 명시
 interface EventMap {
     'user:login': (userId: string, timestamp: number) => void;
     'data:received': (payload: DataPayload) => void;
 }
-
-class TypedEmitter {
-    on<K extends keyof EventMap>(event: K, callback: EventMap[K]): void;
-    emit<K extends keyof EventMap>(event: K, ...args: Parameters<EventMap[K]>): void;
-}
-// 콜백 파라미터 타입이 자동 추론됨 — as 캐스팅 불필요
-
-// ❌ Bad — 콜백 파라미터가 unknown/any → 수신 측에서 as 캐스팅 강제
-on(event: string, callback: (...args: unknown[]) => void): void;
 ```
 
-이 원칙을 적용하면 콜백 수신 측에서 `as` 캐스팅이 완전히 제거된다.
+Get approval if `unknown`/`any` callback params are unavoidable.
 
-콜백 파라미터에 `unknown`/`any`를 유지해야 할 불가피한 이유가 있다면 반드시 사용자에게 설명하고 승인받은 후 진행한다. 타협 없이 typed 패턴을 목표로 한다.
+## Minimize Type Casting
 
-## 타입 캐스팅 최소화
+**`as unknown as` (double cast) forbidden.** Fix type design with interfaces/generics.
 
-**`as unknown as` (이중 캐스팅) 금지.** 타입이 맞지 않으면 인터페이스/제네릭으로 타입 설계를 수정한다.
+**`as Type` (single cast)** — depends on data source:
 
-`as Type` (단일 캐스팅)은 데이터 출처에 따라 다르게 판단한다:
+- **Allowed** for internal structured data: hardware comm data parsed by same-codebase drivers, fixed-structure event payloads (open-protocol, ROS), narrowing already-typed function returns. Define interface and cast with `as InterfaceName`.
+- **Require type guard or Zod** for untrusted external data: REST API responses, user input, external WebSocket messages, parsed JSON files. **Get user approval before writing new type guards** — don't over-engineer for internal hardware data.
 
-**`as` 단순 캐스팅 허용 — 구조가 보장된 내부 데이터:**
-- 같은 코드베이스의 드라이버/라이브러리가 파싱한 하드웨어 통신 데이터
-- 구조가 고정된 이벤트 페이로드 (open-protocol, ROS 등 내부 제어 프로토콜)
-- 타입이 이미 정의된 함수의 반환값을 좁히는 경우
+**`undefined!` exception**: Allowed only in `dispose()` for forcing GC reference release.
 
-이 경우 인터페이스를 정의하고 `as InterfaceName`으로 단순 캐스팅한다. type guard 함수는 필요 없다.
+**Local variable to eliminate `as`**: After type guard, if `as` is still needed (e.g. array index access), assign to local variable first — TS narrows it automatically.
 
-```ts
-// ✅ Good — 구조가 보장된 하드웨어 데이터: 단순 as 허용
-interface PsetSelectedData {
-    payload: { parameterSetID: number };
-}
-const { payload } = data as PsetSelectedData;
-```
+## Code Line Length
 
-**type guard 함수 또는 Zod — 신뢰할 수 없는 외부 데이터:**
-- REST API 응답
-- 사용자 입력
-- 외부 서버에서 오는 WebSocket 메시지
-- 파일에서 읽은 JSON
+Max **120 characters** per line. Break long lines for readability.
 
-**type guard 함수를 새로 작성하기 전에 반드시 사용자에게 확인받는다.** 내부 하드웨어 데이터에 type guard를 추가하는 것은 오버엔지니어링이다.
+## Generics
 
-**`undefined!` 허용 예외**: `dispose()` 메서드에서 리소스 해제 목적으로 프로퍼티를 강제 초기화할 때는 `undefined!`를 허용한다. 이는 dispose 후 GC가 참조를 회수할 수 있도록 하는 관용적 패턴이다. 단, dispose 메서드 외부에서는 사용하지 않는다.
+When a base class/common module handles **different data structures per subclass/consumer**, use generics. Don't use `Record<string, unknown>`, `any`, or casts. Review existing `any`/`Record<string, unknown>`/casts during conversion for generic replacement.
 
-**지역 변수 분리로 `as` 제거**: 타입 가드 함수(`isXxx(value): value is T`) 적용 후에도 `as`가 필요한 경우, 대상 값을 **지역 변수에 먼저 할당**하면 TypeScript가 타입을 좁혀주어 `as`를 제거할 수 있다.
+**Generic classes**: Design common base with generics so subclasses specify concrete types. Callers shouldn't need to specify types manually each time.
 
-```ts
-// ❌ Bad — 배열 인덱스 접근 후 타입 가드가 작동하지 않아 as 필요
-if (!isRecord(_acc[_name])) { _acc[_name] = {}; }
-return _acc[_name] as Record<string, unknown>;
+## Common Interfaces
 
-// ✅ Good — 지역 변수로 분리하면 타입 가드 작동, as 불필요
-const child = _acc[_name];
-if (isRecord(child)) {
-    return child;  // child: Record<string, unknown> — 자동 좁혀짐
-}
-const newChild: Record<string, unknown> = {};
-_acc[_name] = newChild;
-return newChild;
-```
+When multiple classes share the same methods, define a common interface with `implements`. Eliminates casts in factories/containers.
 
-```
-// ✅ Good — 인터페이스로 해결
-class FEnet implements CommHandler { ... }
-const driver = driverFactory.get('fenet');  // CommHandler 타입 반환
+## any / unknown Rules
 
-// ✅ Good — 제네릭으로 해결
-const closed = door.getTag('stat.closed');  // 자동 추론
+**`any` — Forbidden.** No exceptions.
 
-// ❌ Bad — 이중 캐스팅
-driver.ref as unknown as CommHandler
+**`unknown` — External boundaries only, requires user approval.** Before using `unknown`:
+1. Trace actual call/data flow to find concrete type
+2. Only if truly impossible, explain with justification and get approval
+3. Never write `unknown` without approval
 
-// ❌ Bad — 비즈니스 로직에서 단일 캐스팅
-const closed = door.getTag('stat.closed') as number;
-```
+External boundaries: hardware raw data, WebSocket messages, JSON.parse results. Internal code (function params, return values, callbacks) must use concrete types.
 
-## 코드 줄 길이
+## `Record<string, unknown>` Minimization
 
-한 줄은 **120자 이내**로 작성한다. 초과하면 줄바꿈하여 가독성을 유지한다.
+It's a variant of `unknown`. Before using, check: (1) trace actual fields, (2) define interface if known, (3) use recursive types for nested structures, (4) for library options, define known fields + `[key: string]: unknown` for extensibility.
 
-```
-// ✅ Good — 120자 이내로 줄바꿈
-write = (
-    addr: string,
-    values: Data,
-    type: string,
-    options?: MemoryModelOptions,
-): Promise<CommResponse | undefined> => {
+**Allowed**: external API metadata, undocumented library options, generic constraints (`TTags extends Record<string, unknown>`).
 
-// ❌ Bad — 한 줄에 모두 작성
-write = (addr: string, values: Data, type: string, options?: MemoryModelOptions): Promise<CommResponse | undefined> => {
-```
+## External Library `.d.ts` Declarations
 
-## 제네릭 활용 원칙
+For libraries without `@types/`: methods accepting/returning "anything" should use `unknown`, not `Record<string, unknown>`. The latter forces downstream code to add `[key: string]: unknown` index signatures, causing type pollution.
 
-TypeScript 전환 또는 코드 작성 시, 베이스 클래스/공통 모듈이 **하위 클래스/사용처마다 다른 데이터 구조**를 다루면 제네릭으로 설계한다. `Record<string, unknown>`, `any`, 타입 캐스팅으로 우회하지 않고 제네릭으로 해결한다.
+## Root Cause for Type Errors
 
-제네릭이 필요한 대표 패턴:
+Never add `[key: string]: unknown` or `as` casts to **dodge** type errors. When errors cascade (A fix → B error → B fix → C error), find the **cascade start point** and fix that declaration. Multiple places needing index signatures/casts = signal that root cause is elsewhere.
 
-- **베이스 클래스**: 하위 클래스가 각각 다른 타입의 데이터를 저장/반환하는 경우 → 베이스에 제네릭 파라미터 추가
-- **팩토리/컨테이너**: 여러 타입의 객체를 관리하는 경우 → 반환 타입에 제네릭 적용
-- **콜백/이벤트 핸들러**: 인자가 사용처마다 다른 경우 → 콜백 타입을 제네릭으로
-- **공통 유틸리티**: 입력 타입에 따라 출력 타입이 결정되는 경우 → 제네릭 함수로
+## No Type Suppression Comments
 
-전환 작업 시 기존 코드에서 `any`, `Record<string, unknown>`, 타입 캐스팅, duck typing으로 처리된 곳을 발견하면 **제네릭으로 교체할 수 있는지 먼저 검토**한다.
+Never use `@ts-expect-error`, `@ts-ignore`, `eslint-disable`. Fix the actual type error.
 
-## 제네릭 클래스 활용
+## No `Function` Type
 
-공통 베이스 클래스는 **제네릭으로 설계**하여 하위 클래스에서 구체 타입을 지정한다. 호출 측에서 매번 타입을 지정하지 않아도 되도록 한다.
-
-```
-// ✅ Good — 클래스 제네릭 + FlattenKeys로 dot notation 지원
-class Thing<TTags extends object> {
-    getTag(): TTags | undefined;
-    getTag<K extends FlattenKeys<TTags>>(tagName: K): DeepValue<TTags, K> | undefined;
-}
-
-class Door extends ThingExt<DoorTags> { }
-
-interface DoorTags {
-    stat: { closed: number; opened: number; loopSensor: number };
-    cmd: { enable: number; open: number; close: number };
-}
-
-// 사용: 타입 자동 추론, 오타 컴파일 타임 검출
-const closed = door.getTag('stat.closed');   // number — 자동 추론
-const tags = door.getTag();                   // DoorTags — 자동 추론
-door.getTag('stat.closd');                    // ← 컴파일 에러! 오타 검출
-
-// ❌ Bad — 메서드 제네릭 (매번 타입 지정)
-const closed = door.getTag<number>('stat.closed');
-```
-
-## 공통 인터페이스 정의
-
-여러 클래스가 동일한 메서드를 가지면 **공통 인터페이스를 정의하고 implements** 한다. 팩토리/컨테이너에서 반환할 때 캐스팅이 불필요해진다.
-
-```
-// ✅ Good — 인터페이스 implements
-interface CommHandler {
-    write(...): void;
-    read(...): void;
-    isConnected(): boolean;
-    close(): void;
-}
-
-class FEnet extends FrameBuilder implements CommHandler { ... }
-class Modbus implements CommHandler { ... }
-
-// 팩토리에서 캐스팅 없이 반환
-get(name: string): { id: string; ref: CommHandler } | undefined
-
-// ❌ Bad — 인터페이스 없이 캐스팅
-get(name: string): { id: string; ref: Record<string, unknown> }
-// 사용 시: driver.ref as unknown as CommHandler
-```
-
-## any / unknown 사용 원칙
-
-`any`와 `unknown`은 모두 **구체적 타입을 찾는 노력을 먼저** 한 뒤에만 고려한다. 실제 데이터 흐름을 추적하여 정확한 타입을 정의할 수 있다면 반드시 그렇게 한다.
-
-**`any` — 금지.** 어떤 경우에도 사용하지 않는다.
-
-**`unknown` — 외부 경계에서만 허용, 사용 전 사용자 확인 필수.** `unknown`을 사용해야 할 것 같은 상황이 오면:
-1. 먼저 실제 호출/데이터 흐름을 추적하여 구체적 타입을 찾는다
-2. 구체적 타입이 정말 불가능한 경우에만 사용자에게 근거와 함께 확인받는다
-3. 승인 없이 `unknown`을 작성하지 않는다
-
-외부 경계란 하드웨어에서 읽은 raw 데이터, WebSocket 수신 메시지, JSON.parse 결과 등 런타임에 타입을 보장할 수 없는 지점을 말한다. 내부 코드 간 전달(함수 파라미터, 반환값, 콜백 등)에는 반드시 구체적 타입을 사용한다.
-
-```
-// ✅ Good — 실제 호출 흐름을 추적하여 정확한 타입 정의
-on = (eventName: string, conditions: ..., cb?: (topic: string, error?: Error) => void): void => {
-
-// ✅ Good — 외부 경계에서만 unknown 허용
-ws.onmessage = (event: MessageEvent) => {
-    const data: unknown = JSON.parse(event.data);
-    if (isStatusBatch(data)) { /* 타입이 좁혀짐 */ }
-};
-
-// ❌ Bad — 추적하면 구체 타입을 알 수 있는데 unknown/any 사용
-on = (eventName: string, conditions: ..., cb?: (...args: unknown[]) => void): void => {
-on = (eventName: string, conditions: ..., cb?: (...args: any[]) => void): void => {
-```
-
-## `Record<string, unknown>` 최소화 원칙
-
-`Record<string, unknown>`은 `unknown`의 변형이다. **실제 구조를 알 수 있는 곳에서는 구체적 인터페이스로 대체**한다. `Record<string, unknown>`을 작성하기 전에 반드시 아래 체크리스트를 확인한다.
-
-**체크리스트:**
-1. **실제 데이터가 어떤 필드를 가지는지** 호출 흐름을 추적한다
-2. 필드를 알 수 있으면 **인터페이스로 정의**한다
-3. 중첩 구조(트리)는 **재귀 타입**으로 정의한다
-4. 외부 라이브러리 옵션은 **자주 쓰이는 필드를 인터페이스로 정의**하고 필요 시 `[key: string]: unknown` 인덱스로 확장성을 허용한다
-
-**허용되는 경우:**
-- 외부 API 응답의 `metadata` 필드 (서버에서 임의 구조 반환)
-- 외부 라이브러리 타입 선언에서 문서화되지 않은 옵션
-- 제네릭 제약 (`TTags extends Record<string, unknown>`)
-
-```
-// ✅ Good — 구체적 인터페이스
-interface WriteBlockLeaf {
-    addr: string;
-    type: string;
-    options?: MemoryModelOptions;
-}
-type WriteBlockTree = Record<string, WriteBlockTree | WriteBlockLeaf>;
-
-// ✅ Good — 외부 라이브러리 옵션 (알려진 필드 + 확장)
-interface ParserStringOptions {
-    length: number | string;
-    encoding?: string;
-    padd?: string;
-    [key: string]: unknown;
-}
-
-// ✅ Good — 외부 API 메타데이터 (구조 불확정)
-interface ChargeData {
-    soc: number;
-    metadata: Record<string, unknown>;
-}
-
-// ❌ Bad — 내부 구조를 알 수 있는데 Record<string, unknown> 사용
-private _writeBlocks: Record<string, unknown>;
-write(addr: string, ..., options?: Record<string, unknown>): void;
-
-// ❌ Bad — 인터페이스 파라미터에 Record<string, unknown>
-type SocketManagerConstructor = new (options: Record<string, unknown>) => SocketManager;
-```
-
-## 외부 라이브러리 `.d.ts` 선언 원칙
-
-`@types/`가 없는 라이브러리의 타입을 직접 선언할 때 **"아무 값이나 받거나 반환"하는 메서드는 `Record<string, unknown>` 대신 `unknown`** 을 사용한다.
-
-`Record<string, unknown>`을 사용하면 내부 코드가 그 타입을 만족시키기 위해 불필요한 인덱스 시그니처 `[key: string]: unknown`를 추가해야 하는 연쇄 오염이 발생한다.
-
-```
-// ✅ Good — "아무 값이나" 받거나 반환하는 메서드는 unknown
-class Parser {
-    encode(obj: unknown): Buffer;      // 내부 코드에서 캐스팅 불필요
-    parse(buffer: Buffer): unknown;    // 결과를 구체적 타입으로 단일 캐스팅 가능
-}
-
-// ❌ Bad — Record<string, unknown>으로 선언하면 내부 코드 오염 시작
-class Parser {
-    encode(obj: Record<string, unknown>): Buffer;  // → 전달 객체에 인덱스 시그니처 강제
-    parse(buffer: Buffer): Record<string, unknown>; // → as unknown as ConcreteType 이중 캐스팅 유발
-}
-```
-
-## 타입 오류 발생 시 근본 원인 우선
-
-타입 오류가 발생했을 때 `[key: string]: unknown` 추가나 `as` 캐스팅으로 **회피하지 않는다.** 오류의 근본 원인을 찾아 타입 설계를 수정한다.
-
-타입 오류가 연쇄적으로 발생할 때(A 수정 → B에서 에러 → B 수정 → C에서 에러) **연쇄의 시작점을 찾아 그 선언을 수정**한다. 여러 곳에 인덱스 시그니처나 캐스팅을 추가해야 한다면 그건 근본 원인이 따로 있다는 신호다.
-
-```
-// ❌ Bad — 타입 오류를 만날 때마다 회피 → 오염이 연쇄 전파
-encode(obj: Record<string, unknown>)  ← 선언 실수
-  → REQ_FRAME에 [key: string]: unknown 추가
-  → RequestData에 param: Record<string, unknown> 추가
-  → FrameParam에 [key: string]: unknown 추가
-  → FEnetRequestData에 [key: string]: unknown 추가
-
-// ✅ Good — 연쇄 시작점(encode 선언)을 수정하면 모두 해소
-encode(obj: unknown)  ← 근본 원인 수정
-```
-
-## 타입 억제 주석 금지
-
-`@ts-expect-error`, `@ts-ignore`, `eslint-disable` 주석을 사용하지 않는다. 타입 에러가 발생하면 **타입을 올바르게 수정**하여 해결한다. 주석으로 에러를 숨기는 것은 근본 원인을 방치하는 것이다.
-
-```
-// ❌ Bad — 주석으로 에러 숨김
-// @ts-expect-error 타입 불일치
-await this.work.alloc(plateNo, workplaceId, this.workMode);
-
-// ❌ Bad
-// eslint-disable-next-line @typescript-eslint/no-unsafe-function-type
-type StepFunction = Function;
-
-// ✅ Good — 타입을 올바르게 수정
-type StepFunction = (option: StepOption) => Promise<void>;
-```
-
-## `Function` 타입 금지
-
-`Function` 타입을 사용하지 않는다. **구체적인 함수 시그니처**를 정의한다.
-
-```
-// ✅ Good
-type TaskCallback = (result: boolean) => void;
-interface StepOption {
-    func: TaskCallback;
-}
-
-// ❌ Bad
-interface StepOption {
-    func: Function;
-}
-```
+Define concrete function signatures instead.
 
 ## interface vs type
 
-**객체 형태는 `interface`**, 유니온/인터섹션/유틸리티 타입은 **`type`**으로 정의한다.
+**Object shapes → `interface`**. Unions/intersections/utility types → **`type`**.
 
-```
-// ✅ Good — 객체 형태는 interface
-interface AgvStatus {
-    tags: AgvTags;
-    params: AgvStatusParams;
-}
+## Extract Long Inline Types
 
-// ✅ Good — 유니온/유틸리티는 type
-type DeviceType = 'agv' | 'charger' | 'door';
-type Nullable<T> = T | null;
+When inline types (function types, object types, unions) in parameters/returns/properties get long, extract to `type` alias or `interface`.
 
-// ❌ Bad — 객체 형태를 type으로
-type AgvStatus = {
-    tags: AgvTags;
-    params: AgvStatusParams;
-};
-```
+## No enum — Use const Object
 
-## 긴 타입 시그니처 분리
+Use `as const` objects with derived types instead of TypeScript `enum`.
 
-인라인 타입(함수 타입, 객체 타입, 유니온 타입 등)이 길어지면 **`type` 별칭 또는 `interface`로 분리**한다. 파라미터, 반환 타입, 프로퍼티 등에 인라인으로 긴 타입이 들어가면 가독성이 떨어진다.
-
-```
-// ✅ Good — 콜백 타입을 별칭으로 분리
-type EventHandler = (topic: string, error?: Error) => void;
-
-interface ChargerObject {
-    on(name: string, condition: string, handler: EventHandler): void;
-}
-
-// ✅ Good — 인라인 객체 타입을 interface로 분리
-interface TagResponse {
-    uptime: number;
-    data: Record<string, unknown>;
-}
-
-parseTags = (responses: TagResponse | TagResponse[]): void => {
-
-// ❌ Bad — 인라인 함수 타입이 너무 길어 가독성 저하
-interface ChargerObject {
-    on(name: string, condition: string, handler: (topic: string, error?: Error) => void): void;
-}
-
-// ❌ Bad — 인라인 객체 타입이 파라미터에 직접 들어감
-parseTags = (
-    responses: { uptime: number; data: Record<string, unknown> }
-        | { uptime: number; data: Record<string, unknown> }[],
-): void => {
-```
-
-## enum vs const object
-
-TypeScript `enum`을 사용하지 않는다. **`as const` 객체**를 사용한다.
-
-```
-// ✅ Good
-const DEVICE = {
-    AGV: 'agv',
-    CHARGER: 'charger',
-} as const;
-
+```ts
+const DEVICE = { AGV: 'agv', CHARGER: 'charger' } as const;
 type DeviceType = (typeof DEVICE)[keyof typeof DEVICE];
-
-// ❌ Bad
-enum Device {
-    AGV = 'agv',
-    CHARGER = 'charger',
-}
 ```
 
-## 함수 스타일
+## Function Style
 
-- **클래스 메서드**: arrow function (`=`) 사용 (this 바인딩 보장, eventBus 콜백 전달 시 안전)
-- **모듈 레벨 유틸리티**: function declaration 사용
-
-```
-// ✅ Good — 클래스 메서드: arrow
-class Work {
-    alloc = (plateNo: string): void => { };
-}
-
-// ✅ Good — 모듈 레벨: function
-function parseTag<T>(path: string): T { }
-
-// ❌ Bad — 클래스 메서드에 function
-class Work {
-    alloc(plateNo: string): void { }  // eventBus 콜백 시 this 유실 위험
-}
-```
+- **Class methods**: arrow functions (`=`) for safe `this` binding
+- **Module-level utilities**: function declarations
 
 ## null vs undefined
 
-**`undefined`를 기본으로** 사용한다. optional 파라미터(`param?: Type`)와 자연스럽게 호환된다. `null`은 **"의도적으로 비어있음"을 명시**할 때만 사용한다 (예: API 응답에서 데이터 없음).
+Default to **`undefined`** (compatible with optional params `param?: Type`). Use `null` only for explicit "intentionally empty" (e.g. API response with no data).
 
-```
-// ✅ Good — undefined 기본
-interface ScadaState {
-    agv?: AgvStatusMap;          // 아직 수신 안 됨
-}
+## Type File Location
 
-// ✅ Good — null은 명시적 빈 값
-interface ScadaResponse<T> {
-    data: T | null;              // 서버가 "데이터 없음"을 명시적으로 응답
-}
+Co-locate types near their module: `types/` folder with `{module}.types.ts`.
+- Module-shared types → module's `types/` folder
+- Cross-module shared types → `define/types.ts`
+- File-internal types → inline at file top
 
-// ❌ Bad — 내부 상태에 null 남용
-interface ScadaState {
-    agv: AgvStatusMap | null;    // undefined면 충분
-}
-```
+## Conditional Types for Input Shape Detection
 
-## 타입 파일 위치
+Type utilities handling multiple input shapes should use conditional types for automatic detection with a single entry point (like Zod's `z.infer<>`, `Awaited<T>`, `ReturnType<T>`).
 
-타입 정의는 **해당 모듈 가까이에 co-locate**한다. 모듈 디렉터리 하위에 `types/` 폴더를 만들고 `{모듈명}.types.ts` 형식으로 배치한다.
+## Explicit Return Types
 
-- **모듈 공유 타입**: 해당 모듈의 `types/` 폴더에 정의. 예: `server/types/operation-server.types.ts`, `equipment/types/charger.types.ts`
-- **여러 모듈에서 공유하는 공통 타입**: `define/types.ts` 등 공통 정의 파일
-- **해당 파일에서만 사용하는 내부 타입**: 파일 상단에 인라인 정의
-
-```
-// ✅ Good — 모듈 co-location
-// server/types/operation-server.types.ts
-export interface ChargeData { ... }
-export interface WorkData { ... }
-
-// ✅ Good — 공통 도메인 타입
-// define/types.ts
-export interface BatterySlot { ... }
-
-// ✅ Good — 내부 전용: 인라인
-// controller/work.ts
-interface AllocLock {
-    [workplaceId: number]: boolean;
-}
-class Work { ... }
-```
-
-## 타입 유틸리티: 조건부 타입으로 입력 형태 자동 판별
-
-여러 자료구조 형태를 다루는 타입 유틸리티는 **조건부 타입으로 입력 형태를 자동 판별**하여 단일 진입점으로 구현한다. Zod의 `z.infer<>`, `Awaited<T>`, `ReturnType<T>` 등 TypeScript 표준 유틸리티가 이 방식을 따른다.
-
-> 명명 원칙(목적 기준 이름, 입력 형태 기준 금지)은 code-style 스킬을 참조한다.
-
-```ts
-// ✅ Good — 조건부 타입으로 입력 형태 자동 판별
-type TagsFrom<T> =
-    T extends readonly { model: readonly { name: string; type: string }[] }[]
-        ? TagsFromBlockArray<T>                   // [{ model: [...] }, ...]
-    : T extends { model: readonly { name: string; type: string }[] }
-        ? TagsFromModelArray<T['model']>          // { model: [...] }
-    : T extends readonly { name: string; type: string }[]
-        ? TagsFromModelArray<T>                   // [...] flat array
-    : never;
-
-// 사용: 형태와 무관하게 동일한 패턴
-type CraneTags = TagsFrom<typeof WRITE_BLOCK> & TagsFrom<typeof READ_BLOCK>;
-type ScadaTags = TagsFrom<typeof WRITE_BLOCK> & TagsFrom<typeof READ_BLOCKS>;
-```
-
-## 반환 타입 명시
-
-함수/메서드의 반환 타입을 명시한다. 타입 추론에 의존하지 않는다.
-
-```
-// ✅ Good
-isConnected = (): boolean => {
-    return this._commStatus.connected;
-};
-
-getStatus = (): WorkStatus => {
-    return { waiting: this._section.waiting, allocated: this._section.allocated };
-};
-
-// ❌ Bad — 반환 타입 생략
-isConnected = () => {
-    return this._commStatus.connected;
-};
-```
+Always specify function/method return types. Don't rely on inference.
