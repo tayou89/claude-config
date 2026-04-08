@@ -4,6 +4,10 @@
 
 All Claude rules, skills, and CLAUDE.md files MUST be written in **English**. Korean text in rules wastes ~2.4x more tokens than English due to tokenizer inefficiency. User-facing responses remain in Korean per user preference.
 
+## Rule Writing Style
+
+Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sentence over a verbose bullet list. Don't enumerate what a general statement already covers.
+
 ## Skill Management
 
 Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new skill, always add a trigger rule in this CLAUDE.md specifying when it should be referenced. Propose splitting if a skill grows too large or mixes contexts.
