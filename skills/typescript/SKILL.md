@@ -156,6 +156,14 @@ Define concrete function signatures instead.
 
 When inline types (function types, object types, unions) in parameters/returns/properties get long, extract to `type` alias or `interface`.
 
+## No Repeated Inline Object Types
+
+When the same object shape (or a subset of it) appears in 2+ places — parameters, return types, `as` casts, destructuring annotations — extract it to a named `interface`.
+
+- Owner: the class/module that produces or stores the data (provider principle)
+- Consumers import the interface, never redefine the shape inline
+- Violation signal: inline `as { field: Type }` cast, or identical field sets in separate type annotations
+
 ## No enum — Use const Object
 
 Use `as const` objects with derived types instead of TypeScript `enum`.
