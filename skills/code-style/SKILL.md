@@ -275,7 +275,7 @@ Before running `tsc` build (output generation):
 
 **Never run `npx tsc` (output build) without user approval.**
 
-Style check items (minimum): file top structure, consecutive const/type/interface spacing, no unnecessary blank lines in methods, access modifiers + `_` prefix, class member order (public → protected → private).
+Style check covers **all rules in this skill file** — not a subset. Review every changed/added line against the full rule set above.
 
 ## Resource Cleanup in Owner, Not Caller
 
