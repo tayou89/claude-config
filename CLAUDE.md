@@ -40,6 +40,7 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 
 - Always prefer **industry standard / best practices** when writing, modifying, or suggesting code.
 - Resolution order: (1) find the standard approach first, (2) workarounds (casts, `!`, `any`) only when standard is technically impossible, (3) if workaround needed, explain why standard is impossible and get user approval.
+- **Never rationalize workarounds as "legitimate" or "acceptable"** — if it deviates from standard, classify it as a workaround and plan to fix, even if the fix requires large scope. Scope is not an excuse to keep non-standard patterns.
 - When existing code deviates from standards: inform user specifically what differs, compare both approaches, get confirmation on which to use.
 - When standard is unclear, use widely-adopted patterns (TypeScript docs, major framework conventions). If still unclear, ask user.
 
