@@ -14,6 +14,7 @@ Ensure `claude-plans/` exists in the project root. Verify `claude-plans/` is in 
 - Filename: `plan-{feature-name}.md` (English kebab-case)
 - Existing file: add new version at top (keep previous versions)
 - New file: create fresh
+- **Split rule**: If parent file exceeds ~30k tokens, create `plan-{parent}-{subtask}.md`. Include a `### Parent Plan` section (file, version, task reference, prerequisites). Update parent's task entry with a cross-reference to the new file.
 
 ## 3. Reference Code Style
 
