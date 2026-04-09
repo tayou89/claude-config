@@ -2,7 +2,7 @@
 
 ## Language Policy
 
-All Claude rules, skills, and CLAUDE.md files MUST be written in **English**. Korean text in rules wastes ~2.4x more tokens than English due to tokenizer inefficiency. User-facing responses remain in Korean per user preference.
+All Claude rules, skills, CLAUDE.md files, and memory files (MEMORY.md index + individual memory .md) MUST be written in **English**. Korean text wastes ~2.4x more tokens due to tokenizer inefficiency. User-facing responses remain in Korean per user preference.
 
 ## Rule Writing Style
 
