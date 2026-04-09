@@ -35,6 +35,7 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 7. **Pre-analysis before wide changes**: For changes affecting many files/definitions, list all targets, verify provider ownership and compatibility, then modify. No "change first, fix errors later".
 8. **Prevent recurrence**: If problems repeat, stop immediately → identify root cause → define a comprehensive rule → add to global or project CLAUDE.md and report to user. Don't just fix the single instance.
 9. **Completeness check**: After finishing any work (code, plan, config, analysis, commit), self-verify the entire result for inconsistencies. Cross-check against prior decisions. Ensure nothing decided earlier is left in its old state.
+10. **Post-commit updates**: After committing a task from a plan, immediately update: (1) parent plan — mark task as completed with commit hash, (2) memory — reflect new status. Never defer these updates.
 
 ## Standards and Quality
 
