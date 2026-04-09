@@ -103,7 +103,7 @@ Get approval if `unknown`/`any` callback params are unavoidable.
 
 ## Code Line Length
 
-Max **120 characters** per line. Break long lines for readability.
+Max **120 characters** per line. When breaking multi-item imports/exports across lines, put **one item per line**.
 
 ## Generics
 
