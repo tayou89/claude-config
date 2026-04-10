@@ -66,6 +66,7 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - Team agent creation/deletion requires explicit approval.
 - **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review. Must complete **before requesting user approval**.
 - **Reviewer scope**: All reviewers cover the **full change scope** from different perspectives, not split by file range. File-range splitting misses cross-cutting issues.
+- **Rule-based checklist review**: Review agents must **read all applicable skill files** (code-style, typescript, etc.) and project CLAUDE.md, then check each rule against the changed code systematically. Never review from memory or general impression — always open the rule files and verify rule-by-rule.
 - **Verification depth**: Verification agents must trace actual runtime variable values step-by-step, not just check code existence. "The code exists" ≠ "the code is correct."
 
 ## Retroactive Compliance
