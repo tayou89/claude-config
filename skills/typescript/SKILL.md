@@ -15,6 +15,17 @@ Apply these rules when writing or modifying TypeScript code.
 - Target **0 IDE warnings** (ESLint, TS hints). Fix via code changes or ESLint rule adjustments.
 - Disable JS-native ESLint rules (`no-unused-vars`, `no-use-before-define`, `no-shadow`) that false-positive in TS. Use `@typescript-eslint/` equivalents.
 
+## Build Procedure
+
+Before running `tsc` build (output generation):
+1. **Style check**: verify code-style compliance (all rules, not a subset)
+2. **`npx tsc --noEmit`**: confirm 0 type errors
+3. **`eslint`**: confirm 0 errors on changed `.ts` files
+4. **User approval**: show code, get confirmation
+5. **`npx tsc` build**: generate .js/.js.map only after approval
+
+**Never run `npx tsc` (output build) without user approval.**
+
 ## Source and Build Artifacts
 
 When `.ts` and corresponding `.js` coexist, `.js` is a build artifact. **Always edit `.ts` and build with `tsc`** — never edit `.js` directly. Check for corresponding `.ts` before modifying any `.js`.

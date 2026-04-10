@@ -10,7 +10,7 @@ Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sente
 
 ## Skill Management
 
-Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new skill, always add a trigger rule in this CLAUDE.md specifying when it should be referenced. Propose splitting if a skill grows too large or mixes contexts.
+Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new rule, place it in the most specific applicable skill first; only add to CLAUDE.md if the rule applies across all contexts. Always add a trigger rule in this CLAUDE.md specifying when a skill should be referenced. Propose splitting if a skill grows too large or mixes contexts.
 
 ## Skill Triggers
 
@@ -42,9 +42,8 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 
 - Always prefer **industry standard / best practices** when writing, modifying, or suggesting code.
 - Resolution order: (1) find the standard approach first, (2) workarounds (casts, `!`, `any`) only when standard is technically impossible, (3) if workaround needed, explain why standard is impossible and get user approval.
-- **Never rationalize workarounds as "legitimate" or "acceptable"** — if it deviates from standard, classify it as a workaround and plan to fix, even if the fix requires large scope. Scope is not an excuse to keep non-standard patterns.
-- **Never compromise on standard for effort/scope reasons.** When a standard solution exists but requires more work (defining types, refactoring signatures, adding generics), that IS the task — not optional extra work to defer. "It would require typing X" or "the scope is large" are not valid reasons to keep workarounds.
-- **Never settle for "first working solution"**: Before proposing any type fix, refactoring, or design change, evaluate at least 2 alternatives. Check standard language features (TS utility types like `Pick`/`Omit`/`Partial`, generics, conditional types) before introducing new types or cross-module imports. Verify dependency direction, ownership, and naming. Present the best solution, not the first one found.
+- **Never rationalize workarounds as "legitimate" or "acceptable"** — if it deviates from standard, classify it as a workaround and plan to fix. Scope and effort are not excuses to keep non-standard patterns; when a standard solution requires more work, that IS the task.
+- **Never settle for "first working solution"**: Before proposing any fix, refactoring, or design change, evaluate at least 2 alternatives. Check standard language features before introducing new types or cross-module imports. Verify dependency direction, ownership, and naming. Present the best solution, not the first one found.
 - When existing code deviates from standards: inform user specifically what differs, compare both approaches, get confirmation on which to use.
 - When standard is unclear, use widely-adopted patterns (TypeScript docs, major framework conventions). If still unclear, ask user.
 

@@ -265,18 +265,6 @@ Logic repeated in 2+ places → extract to a method. Check existing codebase for
 
 When `extends` condition in conditional types exceeds one line or same structure repeats 2+ times, extract to a named type alias.
 
-## Build Procedure: Style Check → User Approval → Build
-
-Before running `tsc` build (output generation):
-1. **Style check**: verify code-style compliance
-2. **`npx tsc --noEmit`**: confirm 0 type errors (no approval needed for this step)
-3. **User approval**: show code, get confirmation
-4. **`npx tsc` build**: generate .js/.js.map only after approval
-
-**Never run `npx tsc` (output build) without user approval.**
-
-Style check covers **all rules in this skill file** — not a subset. Review every changed/added line against the full rule set above.
-
 ## Resource Cleanup in Owner, Not Caller
 
 Callback release, listener removal, schedule cancellation — place cleanup logic inside the method that owns the resource, not in callers. Otherwise other call paths may miss cleanup.
