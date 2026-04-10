@@ -69,7 +69,7 @@ Internal-only members MUST be `private` or `protected`.
 
 **`_` prefix**: Applied to `private` and `protected` members (properties and methods). Not applied to `public` members.
 
-**Class member order**: public → protected → private. Within each: properties → constructor → methods.
+**Class member order**: properties (public → protected → private) → constructor → methods (public → protected → private).
 
 ## Uniform Category Conventions
 
