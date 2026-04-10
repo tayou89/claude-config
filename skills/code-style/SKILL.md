@@ -87,7 +87,7 @@ Order file top sections with **one blank line** between sections:
 
 ## Import Ordering
 
-Order imports by group, one blank line between groups:
+Order imports by group, no blank lines between groups:
 
 1. **Node.js built-ins** (`events`, `fs`, `path`, `net`, etc.)
 2. **External packages** (`axios`, `lodash`, `ws`, etc.)
@@ -95,7 +95,7 @@ Order imports by group, one blank line between groups:
 4. **Internal constants** (large destructured imports like `define/property`)
 5. **`import type`** (always last)
 
-Within each group, no blank lines. Multiline destructured imports (4+ items) use one item per line with trailing comma.
+Multiline destructured imports (4+ items) use one item per line with trailing comma.
 
 ## Imports at File Top Only
 
