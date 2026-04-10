@@ -36,6 +36,7 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 8. **Prevent recurrence**: If problems repeat, stop immediately → identify root cause → define a comprehensive rule → add to global or project CLAUDE.md and report to user. Don't just fix the single instance.
 9. **Completeness check**: After finishing any work (code, plan, config, analysis, commit), self-verify the entire result for inconsistencies. Cross-check against prior decisions. Ensure nothing decided earlier is left in its old state.
 10. **Post-commit updates**: After committing a task from a plan, immediately update: (1) parent plan — mark task as completed with commit hash, (2) memory — reflect new status. Never defer these updates.
+11. **Plan ≠ full spec**: Plans are written at a point in time and may omit applicable rules. When executing each step, cross-check against all relevant skill rules (typescript, code-style, etc.). If a rule covers broader scope than the plan specifies, follow the rule. Rules always override plan text.
 
 ## Standards and Quality
 
@@ -63,7 +64,9 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - **Parallelization preferred**: For long-running tasks (exhaustive audits, large analysis), prefer splitting into parallel agents. Show split plan and get approval.
 - **Proactive agent use**: When scope is large or thoroughness is needed, actively propose agents rather than doing everything sequentially. Approval is still required.
 - Team agent creation/deletion requires explicit approval.
-- **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review.
+- **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review. Must complete **before requesting user approval**.
+- **Reviewer scope**: All reviewers cover the **full change scope** from different perspectives, not split by file range. File-range splitting misses cross-cutting issues.
+- **Verification depth**: Verification agents must trace actual runtime variable values step-by-step, not just check code existence. "The code exists" ≠ "the code is correct."
 
 ## Retroactive Compliance
 
