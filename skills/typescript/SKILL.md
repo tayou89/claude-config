@@ -11,6 +11,7 @@ Apply these rules when writing or modifying TypeScript code.
 ## Build Quality
 
 - Maintain `npx tsc --noEmit` with **0 errors**
+- Run `eslint` on changed `.ts` files before commit — **0 errors** required. Warnings from original JS code patterns are acceptable.
 - Target **0 IDE warnings** (ESLint, TS hints). Fix via code changes or ESLint rule adjustments.
 - Disable JS-native ESLint rules (`no-unused-vars`, `no-use-before-define`, `no-shadow`) that false-positive in TS. Use `@typescript-eslint/` equivalents.
 
