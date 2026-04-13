@@ -179,7 +179,9 @@ All method and function names MUST use camelCase. PascalCase is reserved for cla
 
 ## Minimum Access Exposure
 
-Prefer the most restrictive access modifier: private > protected > public. Use public only for methods called from outside the class hierarchy. Use protected for methods used by subclasses. Default to private for everything else. When unsure, start with private and widen only when needed.
+Prefer the most restrictive access modifier: private > protected > public. Use public only for methods called from outside the class hierarchy. Use protected for methods used by subclasses. Default to private for everything else.
+
+**Exception**: keep public when the method belongs to the class's public contract even with no current callers — getters/setters, lifecycle API (`reset`, `start`, `stop`), interface implementations, utility class methods.
 
 ## No Unnecessary Blank Lines Inside Methods
 
