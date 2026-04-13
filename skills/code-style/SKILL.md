@@ -172,7 +172,7 @@ Within each access level, order method groups as:
 7. `is*` — near bottom
 8. `check*` — last (individual → composite)
 
-Same-prefix methods must be adjacent. The numbered order above is the default; adjust if a file's domain makes a different grouping more natural, but never scatter same-prefix methods.
+Same-prefix methods must be adjacent. Methods not matching any listed prefix go between groups 5 and 6 (after data, before `has*`), grouped by their own prefix. The numbered order above is the default; adjust if a file's domain makes a different grouping more natural, but never scatter same-prefix methods.
 
 ## Method Naming Convention
 
