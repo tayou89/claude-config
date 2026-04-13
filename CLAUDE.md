@@ -93,3 +93,4 @@ Execute terminal-doable tasks directly. Only ask user for browser/GUI actions. N
 - **Discord**: When Discord channel is connected, send all responses there too.
 - **Claude settings sync**: Run `git -C ~/.claude pull` before modifying any `~/.claude/` files. After modification, show changes to user and commit & push via `/git-commit` immediately. Complete before moving to other work.
 - **Session init**: Run `git -C ~/.claude pull` at session start.
+- **Session handover**: When token budget gets tight mid-task, save current state to memory — (1) what was decided, (2) what's done with commits/paths, (3) what's next with exact file lists and rules to apply, (4) a ready-to-paste instruction for the next session. Stop working and hand over before running out.
