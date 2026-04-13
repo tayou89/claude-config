@@ -63,6 +63,7 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - Propose agent splitting when: accuracy drops on repetitive review, scope too wide for sequential processing, or mid-task when scope feels larger than expected.
 - **Parallelization preferred**: For long-running tasks (exhaustive audits, large analysis), prefer splitting into parallel agents. Show split plan and get approval.
 - **Proactive agent use**: When scope is large or thoroughness is needed, actively propose agents rather than doing everything sequentially. Approval is still required.
+- **Agent token budgeting**: Before proposing agents, estimate token cost (file count × avg complexity) and remaining budget. Adjust agent count accordingly — fewer agents with broader scope when budget is tight. Always show proposed count + rationale and get approval.
 - Team agent creation/deletion requires explicit approval.
 - **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review. Must complete **before requesting user approval**.
 - **Reviewer scope**: All reviewers cover the **full change scope** from different perspectives, not split by file range. File-range splitting misses cross-cutting issues.
