@@ -6,8 +6,7 @@ data = json.load(sys.stdin)
 
 # Basic info
 model = data.get('model', {}).get('display_name', '')
-ws = data.get('workspace', {})
-cwd = ws.get('project_dir', '') or ws.get('current_dir', '') or data.get('cwd', '')
+cwd = data.get('workspace', {}).get('current_dir', '') or data.get('cwd', '')
 directory = os.path.basename(cwd) if cwd else ''
 cost = data.get('cost', {}).get('total_cost_usd', 0) or 0
 pct = int(data.get('context_window', {}).get('used_percentage', 0) or 0)
