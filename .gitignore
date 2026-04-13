@@ -10,6 +10,7 @@ debug/
 file-history/
 ide/
 session-env/
+sessions/
 shell-snapshots/
 statsig/
 telemetry/
@@ -18,9 +19,14 @@ backups/
 projects/
 mcp-needs-auth-cache.json
 history.jsonl
+policy-limits.json
+remote-settings.json
+stats-cache.json
 plugins/blocklist.json
 plugins/known_marketplaces.json
 plugins/marketplaces/
+plugins/install-counts-cache.json
+plugins/installed_plugins.json
 
 # 채널 데이터 (토큰, 접근 정보)
 channels/
