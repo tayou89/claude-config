@@ -155,6 +155,18 @@ Always one blank line between class members, methods, and function definitions.
 
 Organize class methods by category. Example order: creation/destruction → connection → status queries → communication → business logic → parameter management → utilities → check functions (individual → composite).
 
+Within each category, group methods of the same type together. For example, all `get*` methods adjacent, all `set*` methods adjacent, all `is*` query methods adjacent. Don't scatter same-type methods across unrelated sections.
+
+**Private/protected check functions** (`check*`, assertion methods) MUST be placed at the **bottom** of the class, after all other methods. Order within: individual checks → composite checks. Public check methods follow normal category grouping and are NOT forced to the bottom.
+
+## Method Naming Convention
+
+All method and function names MUST use camelCase. PascalCase is reserved for classes, interfaces, types, and enums only.
+
+## Minimum Access Exposure
+
+Prefer the most restrictive access modifier: private > protected > public. Use public only for methods called from outside the class hierarchy. Use protected for methods used by subclasses. Default to private for everything else. When unsure, start with private and widen only when needed.
+
 ## No Unnecessary Blank Lines Inside Methods
 
 Blank lines inside method bodies are allowed **only after variable declaration blocks**. No blank lines:
