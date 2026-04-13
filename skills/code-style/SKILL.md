@@ -151,13 +151,20 @@ const res = await auth.request({ url });
 
 Always one blank line between class members, methods, and function definitions.
 
-## Group Methods by Category
+## Class Member Ordering
 
-Organize class methods by category. Example order: creation/destruction → connection → status queries → communication → business logic → parameter management → utilities → check functions (individual → composite).
+Order class members by access modifier, then group by type within each section:
 
-Within each category, group methods of the same type together. For example, all `get*` methods adjacent, all `set*` methods adjacent, all `is*` query methods adjacent. Don't scatter same-type methods across unrelated sections.
+1. **Properties** (public → protected → private)
+2. **Constructor**
+3. **Public methods** — grouped by type (`get*`, `set*`, `is*`, `handle*`, etc.)
+4. **Protected methods** — grouped by type
+5. **Private methods** — grouped by type
+6. **Private/protected check/is functions** — always last (individual → composite)
 
-**Private/protected check functions** (`check*`, assertion methods) MUST be placed at the **bottom** of the class, after all other methods. Order within: individual checks → composite checks. Public check methods follow normal category grouping and are NOT forced to the bottom.
+Within each access level, group methods of the same type together. For example, all `get*` methods adjacent, all `set*` methods adjacent, all `handle*` methods adjacent. Don't scatter same-type methods across unrelated sections.
+
+**Private/protected check functions** (`check*`, assertion methods) and **private/protected `is*` query methods** MUST be placed at the **bottom** of the class, after all other methods. Order within: individual is → individual check → composite check. Public check/is methods stay in the public section grouped by type.
 
 ## Method Naming Convention
 
