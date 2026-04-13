@@ -157,14 +157,22 @@ Order class members by access modifier, then group by type within each section:
 
 1. **Properties** (public → protected → private)
 2. **Constructor**
-3. **Public methods** — grouped by type (`get*`, `set*`, `is*`, `handle*`, etc.)
-4. **Protected methods** — grouped by type
-5. **Private methods** — grouped by type
-6. **Private/protected check/is functions** — always last (individual → composite)
+3. **Public methods** — type order below
+4. **Protected methods** — type order below
+5. **Private methods** — type order below
 
-Within each access level, group methods of the same type together. For example, all `get*` methods adjacent, all `set*` methods adjacent, all `handle*` methods adjacent. Don't scatter same-type methods across unrelated sections.
+Within each access level, order method groups as:
 
-**Private/protected check functions** (`check*`, assertion methods) and **private/protected `is*` query methods** MUST be placed at the **bottom** of the class, after all other methods. Order within: individual is → individual check → composite check. Public check/is methods stay in the public section grouped by type.
+1. `get*` — first
+2. `set*` — second
+3. Lifecycle: `create*`, `init*`, `start*`, `stop*`, `reset*`, `dispose*`, `remove*`, `clear*`
+4. Event/communication: `on*`, `handle*`, `send*`, `notify*`
+5. Data: `add*`, `update*`, `find*`, `parse*`, `make*`, `record*`, `alloc*`/`unalloc*`
+6. `has*` — near bottom
+7. `is*` — near bottom
+8. `check*` — last (individual → composite)
+
+Same-prefix methods must be adjacent. The numbered order above is the default; adjust if a file's domain makes a different grouping more natural, but never scatter same-prefix methods.
 
 ## Method Naming Convention
 
