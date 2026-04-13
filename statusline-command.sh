@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import json, sys, subprocess, os, datetime
+import json, sys, subprocess, os, datetime, shutil
 
 data = json.load(sys.stdin)
 
@@ -13,7 +13,7 @@ duration_ms = data.get('cost', {}).get('total_duration_ms', 0) or 0
 total_in = data.get('context_window', {}).get('total_input_tokens', 0) or 0
 total_out = data.get('context_window', {}).get('total_output_tokens', 0) or 0
 
-# Cache: try multiple possible paths
+# Cache
 cur = data.get('context_window', {}).get('current_usage', {}) or {}
 cache_read = cur.get('cache_read_input_tokens', 0) or 0
 cache_create = cur.get('cache_creation_input_tokens', 0) or 0
@@ -24,46 +24,54 @@ CYAN, GREEN, YELLOW, RED, DIM, RESET = '\033[36m', '\033[32m', '\033[33m', '\033
 # Context progress bar
 bar_color = RED if pct >= 80 else YELLOW if pct >= 50 else GREEN
 filled = pct * 10 // 100
-bar = '█' * filled + '░' * (10 - filled)
+bar = '\u2588' * filled + '\u2591' * (10 - filled)
 
 # Duration
 mins, secs = duration_ms // 60000, (duration_ms % 60000) // 1000
 
+# Git: find executable cross-platform
+git_cmd = shutil.which('git')
+if not git_cmd:
+    for p in ['/usr/local/bin/git', '/usr/bin/git', '/bin/git']:
+        if os.path.isfile(p):
+            git_cmd = p
+            break
+
 # Git branch + detailed status
-try:
-    env = os.environ.copy()
-    env['PATH'] = '/usr/local/bin:/usr/bin:/bin:' + env.get('PATH', '')
-    branch = subprocess.check_output(
-        ['git', '-C', cwd, '--no-optional-locks', 'branch', '--show-current'],
-        text=True, stderr=subprocess.DEVNULL, env=env
-    ).strip()
-    branch = f' | 🌿 {branch}' if branch else ''
-    porcelain = subprocess.check_output(
-        ['git', '-C', cwd, '--no-optional-locks', 'status', '--porcelain'],
-        text=True, stderr=subprocess.DEVNULL, env=env
-    ).strip()
-    if porcelain and branch:
-        staged = modified = untracked = 0
-        for line in porcelain.splitlines():
-            if len(line) >= 2:
-                x, y = line[0], line[1]
-                if x == '?':
-                    untracked += 1
-                else:
-                    if x in 'MADRC':
-                        staged += 1
-                    if y in 'MD':
-                        modified += 1
-        parts = []
-        if staged: parts.append(f'{GREEN}+{staged}{RESET}')
-        if modified: parts.append(f'{YELLOW}~{modified}{RESET}')
-        if untracked: parts.append(f'{RED}?{untracked}{RESET}')
-        if parts:
-            branch += ' ' + ' '.join(parts)
-        else:
-            branch += f' {RED}*{RESET}'
-except Exception:
-    branch = ''
+branch = ''
+if git_cmd and cwd:
+    try:
+        branch_name = subprocess.check_output(
+            [git_cmd, '-C', cwd, '--no-optional-locks', 'branch', '--show-current'],
+            text=True, stderr=subprocess.DEVNULL
+        ).strip()
+        branch = f' | \U0001f33f {branch_name}' if branch_name else ''
+        porcelain = subprocess.check_output(
+            [git_cmd, '-C', cwd, '--no-optional-locks', 'status', '--porcelain'],
+            text=True, stderr=subprocess.DEVNULL
+        ).strip()
+        if porcelain and branch:
+            staged = modified = untracked = 0
+            for line in porcelain.splitlines():
+                if len(line) >= 2:
+                    x, y = line[0], line[1]
+                    if x == '?':
+                        untracked += 1
+                    else:
+                        if x in 'MADRC':
+                            staged += 1
+                        if y in 'MD':
+                            modified += 1
+            parts = []
+            if staged: parts.append(f'{GREEN}+{staged}{RESET}')
+            if modified: parts.append(f'{YELLOW}~{modified}{RESET}')
+            if untracked: parts.append(f'{RED}?{untracked}{RESET}')
+            if parts:
+                branch += ' ' + ' '.join(parts)
+            else:
+                branch += f' {RED}*{RESET}'
+    except Exception:
+        branch = ''
 
 # Rate limits
 rl = data.get('rate_limits', {})
@@ -76,13 +84,13 @@ for key, label in [('five_hour', '5h'), ('seven_day', '7d')]:
         rc = RED if rpct >= 80 else YELLOW if rpct >= 50 else DIM
         if ts and ts > 0:
             reset = datetime.datetime.fromtimestamp(ts).strftime('%H:%M')
-            rate_parts.append(f'{rc}[{label}: {rpct}% → {reset}]{RESET}')
+            rate_parts.append(f'{rc}[{label}: {rpct}% \u2192 {reset}]{RESET}')
         else:
             rate_parts.append(f'{rc}[{label}: {rpct}%]{RESET}')
 rate_str = ' '.join(rate_parts)
 
 # Line 1: model, directory, branch + git status
-print(f'{CYAN}[{model}]{RESET} 📁 {directory}{branch}')
+print(f'{CYAN}[{model}]{RESET} \U0001f4c1 {directory}{branch}')
 
 # Line 2: context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
@@ -92,9 +100,9 @@ def fmt_tokens(n):
 
 cache_total = cache_read + cache_create
 cache_pct = int(cache_read * 100 / cache_total) if cache_total > 0 else 0
-cache_str = f' 💾{cache_pct}%' if cache_total > 0 else ''
+cache_str = f' \U0001f4be{cache_pct}%' if cache_total > 0 else ''
 
-line2 = f'{bar_color}{bar}{RESET} {pct}% | {DIM}↓{fmt_tokens(total_in)} ↑{fmt_tokens(total_out)}{cache_str}{RESET} | {YELLOW}${cost:.2f}{RESET} | ⏱️ {mins}m {secs}s'
+line2 = f'{bar_color}{bar}{RESET} {pct}% | {DIM}\u2193{fmt_tokens(total_in)} \u2191{fmt_tokens(total_out)}{cache_str}{RESET} | {YELLOW}${cost:.2f}{RESET} | \u23f1\ufe0f {mins}m {secs}s'
 if rate_str:
     line2 += f' | {rate_str}'
 print(line2)
