@@ -251,7 +251,7 @@ Callbacks passed as parameters that exceed ~5 lines should be extracted to separ
 
 ## try-catch Scope
 
-Default: wrap **entire function body**. Partial try-catch only when error handling differs by section. Don't nest try-catch with identical error handling. Don't mix `await` with `.catch()`.
+Default: wrap **entire function body**. Partial try-catch only when error handling differs by section. Don't nest try-catch with identical error handling. Don't mix `await` with `.catch()`. Don't nest try-catch — extract inner logic to a separate method. Don't write consecutive try-catch in the same scope — merge into one try-catch or extract to separate methods.
 
 **Handler/callback functions** (event handlers, setInterval/setTimeout, Express middleware): wrap **everything including variable declarations** in try-catch since errors can't propagate upward.
 
