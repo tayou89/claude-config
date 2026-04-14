@@ -110,7 +110,7 @@ All `import`/`require` at file top. No inline `import()` or `require()` mid-code
 
 ## Line Wrapping Style
 
-When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||`, `&`, `|` at line end, not line start). **Exception:** ternary `?`/`:` stays leading — keeps ternary structure visually scannable at the left edge (matches Prettier default). For long `if`/`while` conditions, break right after `(` and put `)` on its own line.
+When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||` at line end, not line start). **Type union exception:** type union `|` stays **leading** — declarative member listing where left-edge alignment aids readability (Prettier default). Intersection `&` stays trailing. **Ternary exception:** `?`/`:` stays leading. For long `if`/`while` conditions, break right after `(` and put `)` on its own line. **String literal exception:** URL, file path 등 줄바꿈 시 값이 변경되는 문자열 리터럴은 120자 규칙에서 예외.
 
 ```ts
 // Good
@@ -126,8 +126,11 @@ if (
 ) { ... }
 
 type Result =
-    SuccessResponse |
-    ErrorResponse;
+    | SuccessResponse
+    | ErrorResponse;
+
+type Tags = TagsFrom<typeof WRITE_BLOCK> &
+    TagsFrom<typeof READ_BLOCKS>;
 
 const x = isAttach
     ? highestFront
