@@ -73,9 +73,16 @@ return 'No error';
 
 When return type includes `undefined`, don't write `else { return undefined; }` or `else { return; }`. Just omit the else block.
 
-## Truthy Checks First
+## Strict Equality Only
 
-Use truthy checks (`if (value)`) over `!= undefined` / `!== undefined` / `!= null`. Use explicit comparison only when `0`, `''`, or `false` are valid values.
+Always use `===`/`!==`. Never use `==`/`!=`.
+
+## Nullish Checks
+
+For null+undefined checks, prefer in this order:
+
+1. **Truthy check** (default): `if (value)` / `if (!value)` — when `0`, `""`, `false` are NOT valid values
+2. **Explicit comparison** (when `0`/`""`/`false` are valid): `value === undefined || value === null` (or `value !== undefined && value !== null`)
 
 ## File Top Structure: import → type → interface → const
 
