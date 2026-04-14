@@ -108,6 +108,32 @@ Multiline destructured imports (4+ items) use one item per line with trailing co
 
 All `import`/`require` at file top. No inline `import()` or `require()` mid-code. No `import('path').Type` inline type references. If inline import is unavoidable (circular dependency), explain and get user approval.
 
+## Line Wrapping Style
+
+When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||`, `&`, `|` at line end, not line start). **Exception:** ternary `?`/`:` stays leading — keeps ternary structure visually scannable at the left edge (matches Prettier default). For long `if`/`while` conditions, break right after `(` and put `)` on its own line.
+
+```ts
+// Good
+const {
+    workplace,
+    transport,
+    warehouse,
+} = ctx;
+
+if (
+    a !== undefined && a !== null &&
+    b !== undefined
+) { ... }
+
+type Result =
+    SuccessResponse |
+    ErrorResponse;
+
+const x = isAttach
+    ? highestFront
+    : highFront;
+```
+
 ## Type/Interface Section — No Blank Lines Between
 
 Type and interface declarations form one section. No blank lines between them. One blank line only after the entire section ends (before const).
