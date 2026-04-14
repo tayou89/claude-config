@@ -110,7 +110,7 @@ All `import`/`require` at file top. No inline `import()` or `require()` mid-code
 
 ## Line Wrapping Style
 
-When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||` at line end, not line start). **Type union exception:** type union `|` stays **leading** — declarative member listing where left-edge alignment aids readability (Prettier default). Intersection `&` stays trailing. **Ternary exception:** `?`/`:` stays leading. For long `if`/`while` conditions, break right after `(` and put `)` on its own line. **String literal exception:** URL, file path 등 줄바꿈 시 값이 변경되는 문자열 리터럴은 120자 규칙에서 예외.
+When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||` at line end, not line start). **Type union exception:** type union `|` stays **leading** — declarative member listing where left-edge alignment aids readability (Prettier default). Intersection `&` stays trailing. **Ternary exception:** `?`/`:` stays leading. For long `if`/`while` conditions, break right after `(` and put `)` on its own line. **String literal rule:** 문자열/템플릿 리터럴을 `+` 연결로 쪼개지 않는다. 120자 초과 시 호출 구조를 줄바꿈(인자 분리, 변수 추출)하되 문자열 자체는 한 줄 유지. 구조 줄바꿈 후에도 문자열 라인이 120자를 초과하면 예외 허용.
 
 ```ts
 // Good
