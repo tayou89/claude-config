@@ -179,9 +179,9 @@ All method and function names MUST use camelCase. PascalCase is reserved for cla
 
 ## Minimum Access Exposure
 
-Prefer the most restrictive access modifier: private > protected > public. Use public only for methods called from outside the class hierarchy. Use protected for methods used by subclasses. Default to private for everything else.
+Prefer the most restrictive access modifier: private > protected > public. Use public only for methods **actually called from outside the class hierarchy**. Use protected for methods used by subclasses. Default to private for everything else — including `get*`/`set*`/lifecycle methods with no external callers. Promote to public when needed; demotion is harder than promotion.
 
-**Exception**: keep public when the method belongs to the class's public contract even with no current callers — getters/setters, lifecycle API (`reset`, `start`, `stop`), interface implementations, utility class methods.
+**No speculative exceptions**: interface implementations must match the interface. Everything else follows the "no external caller → private" rule strictly.
 
 **Underscore prefix**: All non-public members (both `private` and `protected` — methods *and* fields) MUST use `_` prefix. Public members never use `_`. Rationale: the prefix gives a visible cue at call sites (`this._foo`) so consumers can spot accidental access to non-public API without jumping to the definition. Renaming a member's visibility therefore also renames it (and updates all call sites in the class hierarchy).
 
