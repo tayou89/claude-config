@@ -14,7 +14,9 @@ Ensure `claude-plans/` exists in the project root. Verify `claude-plans/` is in 
 - Filename: `plan-{feature-name}.md` (English kebab-case)
 - Existing file: add new version at top (keep previous versions)
 - New file: create fresh
-- **Split rule**: If parent file exceeds ~30k tokens, create `plan-{parent}-{subtask}.md`. Include a `### Parent Plan` section (file, version, task reference, prerequisites). Update parent's task entry with a cross-reference to the new file.
+- **Parent-child structure**: Child plans live in a subfolder named after the parent's topic (parent filename without `plan-` prefix and `.md` suffix). When a plan first gains children, the parent itself moves INTO that folder (`plan-foo.md` → `foo/plan-foo.md`). Children sit alongside the parent (`foo/plan-bar.md`). Grandchildren recurse: `foo/bar/plan-baz.md`. Standalone plans (no children) stay flat at `claude-plans/plan-xxx.md`.
+- **Split rule**: If parent file exceeds ~30k tokens OR a task is conceptually separate, create a child plan following the structure above. Include `### Parent Plan` section with sibling path (`plan-foo.md`) or ancestor path (`../plan-foo.md`), version, task reference, prerequisites. Update parent's task entry with a cross-reference to the new file.
+- **Completion marking**: When a plan's latest version's work is fully complete (all implementation steps committed, no follow-up scope remaining, no further versions expected), rename `plan-foo.md` to `plan-foo.done.md` and change the latest version's status line to `COMPLETED`. Parent plan references to this file must update to the new `.done.md` suffix. Plans with any pending/active work stay as `plan-foo.md`. Filter active plans with `find claude-plans -name 'plan-*.md' ! -name '*.done.md'`.
 
 ## 3. Reference Code Style
 
