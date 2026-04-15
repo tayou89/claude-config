@@ -187,8 +187,31 @@ type DeviceType = (typeof DEVICE)[keyof typeof DEVICE];
 
 ## Function Style
 
-- **Class methods**: arrow functions (`=`) for safe `this` binding
+- **Class instance methods**: arrow functions (`=`) for safe `this` binding
+- **Class static methods**: regular method syntax (`static foo() {}`) — `this` binding is irrelevant for static, arrow form adds no value
 - **Module-level utilities**: function declarations
+
+## Initial State / Default Value Pattern
+
+For class instance fields initialized to a fixed default value (e.g. status objects, config defaults), prefer **module-level `const` + spread** over static factory method.
+
+```typescript
+// ✓ Preferred
+const INITIAL_STATUS: Status = { a: 0, b: 0, c: 0 };
+
+class Foo {
+    private _status: Status = { ...INITIAL_STATUS };
+    reset = (): void => { this._status = { ...INITIAL_STATUS }; };
+}
+
+// ✗ Avoid (verbose, class-name repetition)
+class Foo {
+    private static _createInitial(): Status { return { a: 0, ... }; }
+    private _status: Status = Foo._createInitial();
+}
+```
+
+**Why:** Module-level const exposes the default shape at the top of the file, eliminates `ClassName.method()` repetition, and matches standard patterns (React initial state, Redux initial state). Use a function instead when the default depends on runtime values or generics.
 
 ## null vs undefined
 

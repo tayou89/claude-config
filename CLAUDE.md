@@ -57,6 +57,7 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - Find inline redefinitions → move to provider and replace with import
 - For unconverted JS modules: define temporary interface in consumer with `// TODO: [module] replace with import after TS conversion`
 - No duplicate definitions. Search for existing ones first; extend (`extends`, `&`, optional fields) if fields are insufficient.
+- **Derived constants** (arrays/maps derived from a const, e.g. `Object.values(X)`, `Object.keys(X)`): if **multiple consumers** use the same derivation → define in provider; if **single consumer** → define in that consumer file (don't preemptively pollute provider API).
 
 ## Agent Usage
 
@@ -72,6 +73,7 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - **Reviewer scope**: All reviewers cover the **full change scope** from different perspectives, not split by file range. File-range splitting misses cross-cutting issues.
 - **Rule-based checklist review**: Review agents must **read all applicable skill files** (code-style, typescript, etc.) and project CLAUDE.md, then check each rule against the changed code systematically. Never review from memory or general impression — always open the rule files and verify rule-by-rule.
 - **Verification depth**: Verification agents must trace actual runtime variable values step-by-step, not just check code existence. "The code exists" ≠ "the code is correct."
+- **Exhaustive audits need the right agent config**: Never use `Explore` subagent for exhaustive audits — it is fast-and-shallow by design and will estimate/sample instead of checking every occurrence. For exhaustive work, use `general-purpose` subagent with `model: "opus"` explicitly, and include "Do not estimate. Check every single occurrence individually. Report exact counts, not approximations." in the prompt. If agent results look round-numbered or include phrases like "approximately" or "roughly", re-verify manually or re-run with stricter prompt.
 
 ## Retroactive Compliance
 

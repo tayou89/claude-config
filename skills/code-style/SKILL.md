@@ -189,13 +189,17 @@ Always one blank line between class members, methods, and function definitions.
 
 ## Class Member Ordering
 
-Order class members by access modifier, then group by type within each section:
+Order class members:
 
-1. **Properties** (public → protected → private)
-2. **Constructor**
-3. **Public methods** — type order below
-4. **Protected methods** — type order below
-5. **Private methods** — type order below
+1. **Static properties** (public → protected → private)
+2. **Static methods** (public → protected → private) — type order below
+3. **Instance properties** (public → protected → private)
+4. **Constructor**
+5. **Public instance methods** — type order below
+6. **Protected instance methods** — type order below
+7. **Private instance methods** — type order below
+
+Static members come first because they're class-level utilities available without instantiation; instance code (including field initializers) may reference them.
 
 Within each access level, order method groups as (Angular/React/C++ convention — lifecycle first, predicates last):
 
