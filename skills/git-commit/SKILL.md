@@ -43,8 +43,10 @@ Report: "Code review done — no issues" if clean. If issues found, report speci
 
 **Body**:
 - English, `- ` items after blank line
-- **First bullet carries the purpose** — weave *why* and *what* into the first bullet itself. No separate "Purpose:" label, no opening paragraph. Readers should see the intent in the top bullet and details in following bullets.
-- Focus on **context not visible from diff** (why, what problem, what decision). Don't repeat file/function names.
+- **First bullet carries the purpose** — weave *why* and *what* into the first bullet itself, but keep it **2-3 lines max**. No separate "Purpose:" label, no opening paragraph. Follow-up bullets handle secondary context.
+- **Brevity over completeness**: aim for **3-5 bullets, 1-2 lines each, ~6-8 body lines total**. If the body exceeds 8 lines, prune — likely you are restating the diff or duplicating plan-file content. The commit message is a changelog entry, not documentation.
+- Focus on **context not visible from diff** (why, what problem, what decision). If a bullet restates what the diff already shows, delete it. For complex reasoning, link to the plan file rather than copying it into the message.
+- **Long body signals wrong scope**: consistently hitting the length ceiling means the commit is doing too much — consider splitting.
 - **No internal terms** (Step 1, Phase 2-a, Pattern 3) — describe the change itself
 - Max 72 chars per line. Always write body even for simple changes.
 - Merge commits: list included branches/changes and conflict resolution details.
