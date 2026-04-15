@@ -43,11 +43,22 @@ Report: "Code review done — no issues" if clean. If issues found, report speci
 
 **Body**:
 - English, `- ` items after blank line
-- **Must include purpose** — what this change ultimately achieves. Ask user if unknown.
+- **First bullet carries the purpose** — weave *why* and *what* into the first bullet itself. No separate "Purpose:" label, no opening paragraph. Readers should see the intent in the top bullet and details in following bullets.
 - Focus on **context not visible from diff** (why, what problem, what decision). Don't repeat file/function names.
 - **No internal terms** (Step 1, Phase 2-a, Pattern 3) — describe the change itself
 - Max 72 chars per line. Always write body even for simple changes.
 - Merge commits: list included branches/changes and conflict resolution details.
+
+Example:
+```
+Feat: enforce git-commit skill via PreToolUse hook
+
+- Block direct `git commit` to prevent skipping skill workflow
+  (staging review, message, user approval); skill bypasses with
+  CLAUDE_SKILL_GIT_COMMIT=1 marker (no runtime effect)
+- Skill workflow updated to prepend the marker in commit commands
+- CLAUDE.md gains a hook-enforcement rule for new skills
+```
 
 ## 5. Staging and Commit
 
@@ -59,8 +70,10 @@ Report: "Code review done — no issues" if clean. If issues found, report speci
 
 Remove unrelated files with `git restore --staged <file>` if found.
 
+**Hook bypass**: Direct `git commit` is blocked by a PreToolUse hook. The skill-driven commit MUST prepend `CLAUDE_SKILL_GIT_COMMIT=1` to bypass the hook. This env var has no runtime effect — it's purely a marker proving the skill workflow was followed.
+
 ```bash
-git commit -m "$(cat <<'EOF'
+CLAUDE_SKILL_GIT_COMMIT=1 git commit -m "$(cat <<'EOF'
 <Type>: <subject>
 
 - <detail 1>
@@ -68,6 +81,8 @@ git commit -m "$(cat <<'EOF'
 EOF
 )"
 ```
+
+For amend, same pattern: `CLAUDE_SKILL_GIT_COMMIT=1 git commit --amend ...`
 
 ## 6. Amend Check
 

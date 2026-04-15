@@ -12,6 +12,11 @@ Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sente
 
 Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new rule, place it in the most specific applicable skill first; only add to CLAUDE.md if the rule applies across all contexts. Always add a trigger rule in this CLAUDE.md specifying when a skill should be referenced. Propose splitting if a skill grows too large or mixes contexts.
 
+**Hook enforcement check**: When creating a new skill OR when a skill is being forgotten repeatedly, evaluate whether a `PreToolUse` hook should enforce it. Criteria: (1) skill has a specific triggering tool action (e.g. `git commit`, `npm publish`), (2) skipping the skill has non-trivial cost (missing staging review, unreviewed commits). If yes: add the hook to settings.json blocking the trigger, have the skill inject a bypass marker (env var like `CLAUDE_SKILL_XXX=1`) before the actual command. Propose to user before implementing.
+
+Current hook-enforced skills:
+- **git-commit**: hook blocks direct `git commit`; skill prepends `CLAUDE_SKILL_GIT_COMMIT=1` to bypass.
+
 ## Skill Triggers
 
 - **JS to TS conversion**: Read `typescript-migration` skill before starting. Grep for external `this.xxx` property access and verify callback values are preserved.
