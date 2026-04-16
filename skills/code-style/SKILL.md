@@ -274,6 +274,10 @@ String/number literals with structural meaning that appear **2+ times** should b
 - Referenced from multiple files → shared constant file (e.g. `property.js`)
 - Used in one file/class only → file top or class internal
 
+## Pure Helper Placement
+
+Place pure helpers (no `this`) in the narrowest consumer scope: single-class → class member; multi-function in module → module-level const; cross-module → shared util. Within a class follow the Class Member Ordering rule.
+
 ## await Over Promise Chains
 
 Use `async/await` + `try/catch` instead of `.then().catch()`.
