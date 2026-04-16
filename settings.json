@@ -282,7 +282,7 @@
   },
   "statusLine": {
     "type": "command",
-    "command": "/usr/bin/python3 /home/tayou/.claude/statusline-command.sh"
+    "command": "python3 \"$HOME/.claude/statusline-command.sh\""
   },
   "enabledPlugins": {
     "discord@claude-plugins-official": true
