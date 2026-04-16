@@ -53,6 +53,7 @@ Current hook-enforced skills:
 - **Never settle for "first working solution"**: Before proposing any fix, refactoring, or design change, evaluate at least 2 alternatives. Check standard language features before introducing new types or cross-module imports. Verify dependency direction, ownership, and naming. Present the best solution, not the first one found.
 - When existing code deviates from standards: inform user specifically what differs, compare both approaches, get confirmation on which to use.
 - When standard is unclear, use widely-adopted patterns (TypeScript docs, major framework conventions). If still unclear, ask user.
+- **Compile-time > runtime**: When both solve the same problem, prefer compile-time enforcement (types, generics, discriminated unions) over runtime checks (assertions, guards). Compile-time catches prevent future rework; runtime checks leave `unknown`/`any` in the type system, inviting the same issue to recur.
 
 ## Definition Ownership
 

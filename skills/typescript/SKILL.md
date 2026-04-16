@@ -100,6 +100,21 @@ interface EventMap {
 
 Get approval if `unknown`/`any` callback params are unavoidable.
 
+## Discriminated Unions for Typed Dispatch
+
+When a value's type depends on another field (command→parameter, action→payload, type→data), use a **discriminated union (DU)** to eliminate `unknown` at compile-time. Assertion helpers only validate at runtime and leave `unknown` in the type system — future code will add `as` casts again.
+
+Group commands by parameter shape; use `Exclude` for the no-parameter remainder. Access `event.command` and `event.parameter` on the object (not destructured) so TypeScript narrowing works.
+
+```ts
+type CmdValue = (typeof CMD)[keyof typeof CMD];
+type Event = { sid: string } & (
+    | { command: typeof CMD.MOVE; parameter: number }
+    | { command: typeof CMD.SET_ID; parameter: string }
+    | { command: Exclude<CmdValue, typeof CMD.MOVE | typeof CMD.SET_ID>; parameter?: undefined }
+);
+```
+
 ## Minimize Type Casting
 
 **`as unknown as` (double cast) forbidden.** Fix type design with interfaces/generics.
