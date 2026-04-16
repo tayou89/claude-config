@@ -292,6 +292,8 @@ Default: wrap **entire function body**. Partial try-catch only when error handli
 
 **Handler/callback functions** (event handlers, setInterval/setTimeout, Express middleware): wrap **everything including variable declarations** in try-catch since errors can't propagate upward.
 
+**Auxiliary functions** (logging, monitoring, metrics, diagnostics): when called inside another function's logic, must contain their own try-catch internally so they never propagate errors to the caller. Auxiliary work must not break primary logic.
+
 ## User-Friendly Error Messages
 
 Write error messages that non-technical people can understand. Avoid internal terms (tags, registers, instances).

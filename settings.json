@@ -246,6 +246,7 @@
       "/home/tayou/.claude/skills"
     ]
   },
+  "model": "opus[1m]",
   "hooks": {
     "SessionStart": [
       {

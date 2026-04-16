@@ -183,13 +183,14 @@ Define concrete function signatures instead.
 
 When inline types (function types, object types, unions) in parameters/returns/properties get long, extract to `type` alias or `interface`.
 
-## No Repeated Inline Object Types
+## No Repeated Inline Types
 
-When the same object shape (or a subset of it) appears in 2+ places — parameters, return types, `as` casts, destructuring annotations — extract it to a named `interface`.
+When the same type expression (object shape, union, intersection) appears in 2+ places — parameters, return types, `as` casts, local variables — extract to a named type.
 
+- **Object shapes** → `interface` in the provider module
+- **Unions/intersections** → `type` alias in the file where constituent types converge; export only if multiple files need it
 - Owner: the class/module that produces or stores the data (provider principle)
-- Consumers import the interface, never redefine the shape inline
-- Violation signal: inline `as { field: Type }` cast, or identical field sets in separate type annotations
+- Violation signal: identical union repeated in multiple signatures, or inline `as { field: Type }` cast
 
 ## No enum — Use const Object
 
