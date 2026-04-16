@@ -267,6 +267,15 @@
             "command": "python3 -c 'import sys, json, re; d = json.load(sys.stdin); c = d.get(\"tool_input\", {}).get(\"command\", \"\"); print(json.dumps({\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"git commit direct execution blocked. Use /git-commit skill first (staging review + commit message + explicit user approval). The skill will prepend CLAUDE_SKILL_GIT_COMMIT=1 to bypass this hook.\"}})) if re.search(r\"(^|[^a-zA-Z_])git\\s+commit(\\s|$)\", c) and \"CLAUDE_SKILL_GIT_COMMIT=1\" not in c else None'"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c 'import sys, json; d = json.load(sys.stdin); f = d.get(\"tool_input\", {}).get(\"file_path\", \"\"); print(json.dumps({\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"allow\", \"additionalContext\": \"[CODE-STYLE REMINDER] Editing .ts file. Verify: (1) code-style skill rules (import ordering, file top structure, blank lines, class member order), (2) typescript skill rules (type safety, no any, explicit return types). Read skill files if not yet loaded in this session.\"}})) if f.endswith(\".ts\") else None'"
+          }
+        ]
       }
     ]
   },

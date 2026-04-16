@@ -16,6 +16,7 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 
 Current hook-enforced skills:
 - **git-commit**: hook blocks direct `git commit`; skill prepends `CLAUDE_SKILL_GIT_COMMIT=1` to bypass.
+- **code-style/typescript**: hook shows `[CODE-STYLE REMINDER]` via `additionalContext` when Edit/Write targets `.ts` files. Non-blocking (allow), reminds to read code-style + typescript skill files before editing.
 
 ## Skill Triggers
 
