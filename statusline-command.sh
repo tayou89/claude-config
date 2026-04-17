@@ -56,7 +56,7 @@ if git_cmd and cwd:
             [git_cmd, '-C', cwd, '--no-optional-locks', 'branch', '--show-current'],
             text=True, stderr=subprocess.DEVNULL
         ).strip()
-        branch = f' | {GREEN}{branch_name}{RESET}' if branch_name else ''
+        branch = f' | 🌿 {GREEN}{branch_name}{RESET}' if branch_name else ''
         porcelain = subprocess.check_output(
             [git_cmd, '-C', cwd, '--no-optional-locks', 'status', '--porcelain'],
             text=True, stderr=subprocess.DEVNULL
@@ -84,6 +84,16 @@ if git_cmd and cwd:
     except Exception:
         branch = ''
 
+# OTEL status
+otel_str = ''
+otel_enabled = os.environ.get('CLAUDE_CODE_ENABLE_TELEMETRY', '') == '1'
+if otel_enabled:
+    otel_endpoint = os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT', '')
+    otel_host = otel_endpoint.replace('https://', '').replace('http://', '').split('/')[0] if otel_endpoint else ''
+    otel_str = f' | {GREEN}OTEL:{otel_host}{RESET}' if otel_host else f' | {YELLOW}OTEL:no-endpoint{RESET}'
+else:
+    otel_str = ''
+
 # Rate limits
 rl = data.get('rate_limits', {})
 rate_parts = []
@@ -101,8 +111,8 @@ for key, label in [('five_hour', '5h'), ('seven_day', '7d')]:
 rate_str = ' '.join(rate_parts)
 
 # Line 1: model, directory, branch + git status, user email
-email_str = f' | {DIM}{user_email}{RESET}' if user_email else ''
-print(f'{CYAN}[{model}]{RESET} {directory}{branch}{email_str}')
+email_str = f' | 👤 {DIM}{user_email}{RESET}' if user_email else ''
+print(f'{CYAN}[{model}]{RESET} 📁 {directory}{branch}{otel_str}{email_str}')
 
 # Line 2: context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
@@ -114,7 +124,7 @@ cache_total = cache_read + cache_create
 cache_pct = int(cache_read * 100 / cache_total) if cache_total > 0 else 0
 cache_str = f' C:{cache_pct}%' if cache_total > 0 else ''
 
-line2 = f'{bar_color}{bar}{RESET} {pct}% | {DIM}in:{fmt_tokens(total_in)} out:{fmt_tokens(total_out)}{cache_str}{RESET} | {YELLOW}${cost:.2f}{RESET} | {mins}m{secs}s'
+line2 = f'{bar_color}{bar}{RESET} {pct}% | 🔤 {DIM}in:{fmt_tokens(total_in)} out:{fmt_tokens(total_out)}{cache_str}{RESET} | 💰 {YELLOW}${cost:.2f}{RESET} | ⏱️ {mins}m{secs}s'
 if rate_str:
     line2 += f' | {rate_str}'
 print(line2)
