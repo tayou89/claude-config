@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
-import json, sys, subprocess, os, datetime, shutil
+import json, sys, subprocess, os, datetime, shutil, io
+
+sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 data = json.load(sys.stdin)
 
