@@ -9,7 +9,7 @@ data = json.load(sys.stdin)
 user_email = ''
 try:
     config_dir = os.environ.get('CLAUDE_CONFIG_DIR', os.path.expanduser('~/.claude'))
-    with open(os.path.join(os.path.dirname(config_dir), '.claude.json')) as f:
+    with open(os.path.join(os.path.dirname(config_dir), '.claude.json'), encoding='utf-8') as f:
         user_email = json.load(f).get('oauthAccount', {}).get('emailAddress', '')
 except Exception:
     pass
@@ -56,7 +56,7 @@ if git_cmd and cwd:
             [git_cmd, '-C', cwd, '--no-optional-locks', 'branch', '--show-current'],
             text=True, stderr=subprocess.DEVNULL
         ).strip()
-        branch = f' | \U0001f33f {branch_name}' if branch_name else ''
+        branch = f' | {GREEN}{branch_name}{RESET}' if branch_name else ''
         porcelain = subprocess.check_output(
             [git_cmd, '-C', cwd, '--no-optional-locks', 'status', '--porcelain'],
             text=True, stderr=subprocess.DEVNULL
@@ -95,14 +95,14 @@ for key, label in [('five_hour', '5h'), ('seven_day', '7d')]:
         rc = RED if rpct >= 80 else YELLOW if rpct >= 50 else DIM
         if ts and ts > 0:
             reset = datetime.datetime.fromtimestamp(ts).strftime('%H:%M')
-            rate_parts.append(f'{rc}[{label}: {rpct}% \u2192 {reset}]{RESET}')
+            rate_parts.append(f'{rc}[{label}: {rpct}% -> {reset}]{RESET}')
         else:
             rate_parts.append(f'{rc}[{label}: {rpct}%]{RESET}')
 rate_str = ' '.join(rate_parts)
 
 # Line 1: model, directory, branch + git status, user email
 email_str = f' | {DIM}{user_email}{RESET}' if user_email else ''
-print(f'{CYAN}[{model}]{RESET} \U0001f4c1 {directory}{branch}{email_str}')
+print(f'{CYAN}[{model}]{RESET} {directory}{branch}{email_str}')
 
 # Line 2: context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
@@ -112,9 +112,9 @@ def fmt_tokens(n):
 
 cache_total = cache_read + cache_create
 cache_pct = int(cache_read * 100 / cache_total) if cache_total > 0 else 0
-cache_str = f' \U0001f4be{cache_pct}%' if cache_total > 0 else ''
+cache_str = f' C:{cache_pct}%' if cache_total > 0 else ''
 
-line2 = f'{bar_color}{bar}{RESET} {pct}% | {DIM}\u2193{fmt_tokens(total_in)} \u2191{fmt_tokens(total_out)}{cache_str}{RESET} | {YELLOW}${cost:.2f}{RESET} | \u23f1\ufe0f {mins}m {secs}s'
+line2 = f'{bar_color}{bar}{RESET} {pct}% | {DIM}in:{fmt_tokens(total_in)} out:{fmt_tokens(total_out)}{cache_str}{RESET} | {YELLOW}${cost:.2f}{RESET} | {mins}m{secs}s'
 if rate_str:
     line2 += f' | {rate_str}'
 print(line2)
