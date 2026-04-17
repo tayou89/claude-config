@@ -3,6 +3,14 @@ import json, sys, subprocess, os, datetime, shutil
 
 data = json.load(sys.stdin)
 
+# User email from OAuth account
+user_email = ''
+try:
+    config_dir = os.environ.get('CLAUDE_CONFIG_DIR', os.path.expanduser('~/.claude'))
+    with open(os.path.join(os.path.dirname(config_dir), '.claude.json')) as f:
+        user_email = json.load(f).get('oauthAccount', {}).get('emailAddress', '')
+except Exception:
+    pass
 
 # Basic info
 model = data.get('model', {}).get('display_name', '')
@@ -90,8 +98,9 @@ for key, label in [('five_hour', '5h'), ('seven_day', '7d')]:
             rate_parts.append(f'{rc}[{label}: {rpct}%]{RESET}')
 rate_str = ' '.join(rate_parts)
 
-# Line 1: model, directory, branch + git status
-print(f'{CYAN}[{model}]{RESET} \U0001f4c1 {directory}{branch}')
+# Line 1: model, directory, branch + git status, user email
+email_str = f' | {DIM}{user_email}{RESET}' if user_email else ''
+print(f'{CYAN}[{model}]{RESET} \U0001f4c1 {directory}{branch}{email_str}')
 
 # Line 2: context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
