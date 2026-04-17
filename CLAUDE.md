@@ -16,7 +16,7 @@ Separate skills by scope: **general** (always apply) vs **task-specific** (only 
 
 Current hook-enforced skills:
 - **git-commit**: hook blocks direct `git commit`; skill prepends `CLAUDE_SKILL_GIT_COMMIT=1` to bypass.
-- **code-style/typescript**: hook shows `[CODE-STYLE REMINDER]` via `additionalContext` when Edit/Write targets `.ts` files. Non-blocking (allow), reminds to read code-style + typescript skill files before editing.
+- **code-style/typescript**: hook shows `[CODE-STYLE REMINDER]` via `additionalContext` when Edit/Write targets code files (`.ts`, `.js`, `.tsx`, `.jsx`, `.py`, `.go`, `.rs`, `.java`, `.c`, `.cpp`, `.h`). Non-blocking (allow), reminds to read code-style skill (+ typescript skill if `.ts`) and verify consumer behavior before writing.
 
 ## Skill Triggers
 
@@ -44,6 +44,7 @@ Current hook-enforced skills:
 9. **Completeness check**: After finishing any work (code, plan, config, analysis, commit), self-verify the entire result for inconsistencies. Cross-check against prior decisions. Ensure nothing decided earlier is left in its old state.
 10. **Post-commit updates**: After committing a task from a plan, immediately update: (1) parent plan — mark task as completed with commit hash, (2) memory — reflect new status, (3) if this was the **final** task of the plan (no remaining work in latest version, no further versions expected, and no child plans still active), rename the plan file to `plan-foo.done.md` and change the latest version's status line to `COMPLETED (<commit-hash>)` per the `code-plan` skill's completion marking rule. Update any parent plan's cross-references to the renamed file. Never defer these updates.
 11. **Plan ≠ full spec**: Plans are written at a point in time and may omit applicable rules. When executing each step, cross-check against all relevant skill rules (typescript, code-style, etc.). If a rule covers broader scope than the plan specifies, follow the rule. Rules always override plan text.
+12. **Verify, don't assume**: Every assumption about how existing code behaves is a potential bug. Before writing code that interfaces with existing modules, read the actual implementation. Never infer behavior from naming, documentation, or external conventions alone.
 
 ## Standards and Quality
 

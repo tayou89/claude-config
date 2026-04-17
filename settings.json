@@ -224,7 +224,7 @@
       "Bash(pkill -f \"python3 -m http.server 8888\")",
       "Bash(while read:*)",
       "Bash(do git:*)",
-      "Bash(sort -t'→' -k2 -n)",
+      "Bash(sort -t'\u2192' -k2 -n)",
       "Read(//= \\\\\\(.*\\\\\\) =>/{name=$1} /return this\\\\._callApi/**)",
       "Read(//home/tayou/Desktop/codes/bss-core/scada-web/**)",
       "Bash(*)",
@@ -274,7 +274,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c 'import sys, json; d = json.load(sys.stdin); f = d.get(\"tool_input\", {}).get(\"file_path\", \"\"); print(json.dumps({\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"allow\", \"additionalContext\": \"[CODE-STYLE REMINDER] Editing .ts file. Verify: (1) code-style skill rules (import ordering, file top structure, blank lines, class member order), (2) typescript skill rules (type safety, no any, explicit return types). Read skill files if not yet loaded in this session.\"}})) if f.endswith(\".ts\") else None'"
+            "command": "python3 -c 'import sys, json, os; d = json.load(sys.stdin); f = d.get(\"tool_input\", {}).get(\"file_path\", \"\"); ext = os.path.splitext(f)[1]; code_exts = {\".ts\", \".js\", \".tsx\", \".jsx\", \".py\", \".go\", \".rs\", \".java\", \".c\", \".cpp\", \".h\"}; ts_note = \" (2) typescript skill rules (type safety, no any, explicit return types).\" if ext in {\".ts\", \".tsx\"} else \"\"; print(json.dumps({\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"allow\", \"additionalContext\": \"[CODE-STYLE REMINDER] Editing \" + ext + \" file. Verify: (1) code-style skill rules. (2) typescript skill if .ts.\" + \" (3) Verify-then-write: check how consumers parse the data you produce. Read skill files if not yet loaded.\"}})) if ext in code_exts else None' "
           }
         ]
       }

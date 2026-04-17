@@ -84,16 +84,6 @@ if git_cmd and cwd:
     except Exception:
         branch = ''
 
-# OTEL status
-otel_str = ''
-otel_enabled = os.environ.get('CLAUDE_CODE_ENABLE_TELEMETRY', '') == '1'
-if otel_enabled:
-    otel_endpoint = os.environ.get('OTEL_EXPORTER_OTLP_ENDPOINT', '')
-    otel_host = otel_endpoint.replace('https://', '').replace('http://', '').split('/')[0] if otel_endpoint else ''
-    otel_str = f' | {GREEN}OTEL:{otel_host}{RESET}' if otel_host else f' | {YELLOW}OTEL:no-endpoint{RESET}'
-else:
-    otel_str = ''
-
 # Rate limits
 rl = data.get('rate_limits', {})
 rate_parts = []
@@ -112,7 +102,7 @@ rate_str = ' '.join(rate_parts)
 
 # Line 1: model, directory, branch + git status, user email
 email_str = f' | 👤 {DIM}{user_email}{RESET}' if user_email else ''
-print(f'{CYAN}[{model}]{RESET} 📁 {directory}{branch}{otel_str}{email_str}')
+print(f'{CYAN}[{model}]{RESET} 📁 {directory}{branch}{email_str}')
 
 # Line 2: context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
