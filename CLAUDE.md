@@ -31,11 +31,7 @@ Current hook-enforced skills:
 1. **Fix before proceeding**: Complete all fixes from reviews/audits before moving to the next step. Order: fix → tsc 0 errors → commit → next step.
 2. **Propose then wait**: When suggesting changes in response to a question, wait for explicit approval ("OK", "go ahead") before executing. Even for comparison questions ("which is better?"), present recommendation and wait for user's choice.
 3. **Show code before build/commit**: After writing/modifying code, always show changes to the user and get confirmation **before running build** (`npm run build`, `tsc`, etc.) and before committing. Never build or commit without user review.
-4. **Complete the scope**: Never silently skip parts of agreed work. If blocked, stop and report immediately with root cause (where you stopped, why, what the root cause is). Let user decide whether to continue, change approach, or defer. Forbidden actions:
-   - Self-applied `@ts-expect-error` or workarounds without approval
-   - Silently omitting items from agreed scope (e.g. promising 40 methods, doing 15)
-   - Symptom-only patches instead of root fix (e.g. inline interface tweak vs proper import)
-   - Self-justified workarounds citing "language limitation" (e.g. adding `any` without asking)
+4. **Complete the scope**: Never silently skip parts of agreed work or self-justify workarounds (`@ts-expect-error`, `any`, scope omission, symptom-only patches). If blocked, stop and report root cause immediately — let user decide.
 5. **Root cause first**: Diagnose and fix root causes, not symptoms. Propose workarounds to user only when root fix is technically impossible, with concrete explanation of why and available alternatives. User chooses.
 6. **Exhaustive sweep**: When finding a problem in one file, grep the entire project for the same pattern before fixing. Fix all occurrences at once. Propose prevention rules if needed.
 7. **Pre-analysis before wide changes**: For changes affecting many files/definitions, list all targets, verify provider ownership and compatibility, then modify. No "change first, fix errors later".

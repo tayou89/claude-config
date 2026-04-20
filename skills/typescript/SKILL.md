@@ -43,18 +43,7 @@ Use `import`/`export` instead of `require()`/`module.exports`. tsc compiles to C
 **Module with JS consumers** → `import X = require('...')`
 **Type only** → `import type { X } from '...'`
 
-**Named import for partial values**: With `esModuleInterop: true`, `export =` modules support named imports. Destructure at import time, don't create intermediate variables.
-
-```ts
-// Good
-import { WRITE_BLOCK, READ_BLOCK } from './crane-map';
-
-// Bad — intermediate variable
-import craneMapModule = require('./crane-map');
-const { WRITE_BLOCK, READ_BLOCK } = craneMapModule;
-```
-
-Exceptions for `import X = require(...)` + destructure: `export = X` modules (tsc 2497 error), when full module reference is needed (`typeof module.FIELD`), single-value exports (Logger, ThingExt, drivers).
+**Named import for partial values**: With `esModuleInterop: true`, destructure at import time — don't create intermediate variables. Exceptions: `export = X` modules (tsc 2497), full module reference needed (`typeof module.FIELD`), single-value exports.
 
 ## Named Export (No Default Export)
 
@@ -89,16 +78,7 @@ Same-category modules (equipment, controllers, drivers) must share the **same le
 
 ## Typed Event/Callback Systems
 
-Design event bus/emitter/callback systems with **typed patterns**. Define payload types per event in EventMap so callback params are never `unknown`/`any`.
-
-```ts
-interface EventMap {
-    'user:login': (userId: string, timestamp: number) => void;
-    'data:received': (payload: DataPayload) => void;
-}
-```
-
-Get approval if `unknown`/`any` callback params are unavoidable.
+Design event bus/emitter/callback systems with **typed EventMap** so callback params are never `unknown`/`any`. Get approval if unavoidable.
 
 ## Discriminated Unions for Typed Dispatch
 
@@ -127,6 +107,10 @@ type Event = { sid: string } & (
 **`undefined!` exception**: Allowed only in `dispose()` for forcing GC reference release.
 
 **Local variable to eliminate `as`**: After type guard, if `as` is still needed (e.g. array index access), assign to local variable first — TS narrows it automatically.
+
+## Honest Nullability + Guard Narrowing
+
+Runtime에서 undefined/null 가능한 값은 타입에 optional/nullable로 선언하고 compound guard(`if (a && b)`)로 narrowing한다. Required로 선언 후 `as`로 억지 맞추지 않는다.
 
 ## Code Line Length
 

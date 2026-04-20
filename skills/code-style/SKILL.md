@@ -12,39 +12,9 @@ Apply these rules when writing or modifying code. **Applies everywhere including
 
 All control statements (`if`, `else`, `for`, `while`, `do`) MUST use braces `{}` with body on a new line. Never omit braces or write single-line bodies.
 
-```
-// Good
-if (condition) {
-    return value;
-}
-
-// Bad
-if (condition) return value;
-if (condition) { return value; }
-```
-
 ## No Early Void Return / Guard Throw — Use if-else or Check Functions
 
-Value-returning early returns (`return false`, `return 0`) are allowed. **Void returns and guard throws to exit a function are not.**
-
-- Single condition: use if-else
-- Multiple conditions: extract to a check function (see check function pattern below)
-
-```
-// Good — if-else
-if (data) {
-    const { cmd } = data;
-    // main logic
-} else {
-    throw new Error('...');
-}
-
-// Bad — guard throw
-if (!data) {
-    throw new Error('...');
-}
-const { cmd } = data;
-```
+Value-returning early returns (`return false`, `return 0`) are allowed. **Void returns and guard throws to exit a function are not.** Single condition: use if-else. Multiple conditions: extract to a check function (see check function pattern below).
 
 ## Positive Conditions First
 
@@ -53,21 +23,6 @@ Prefer positive conditions over negated (`!`) conditions. Exception: simple cond
 ## Always Write Explicit else
 
 When if branches return values or diverge processing, **always wrap the last branch in else**. Don't fall through past if to return.
-
-```
-// Good
-if (errorCode) {
-    return `Error: ${errorCode}`;
-} else {
-    return 'No error';
-}
-
-// Bad
-if (errorCode) {
-    return `Error: ${errorCode}`;
-}
-return 'No error';
-```
 
 ## No Unnecessary `return undefined`
 
@@ -110,78 +65,15 @@ All `import`/`require` at file top. No inline `import()` or `require()` mid-code
 
 ## Line Wrapping Style
 
-When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||` at line end, not line start). **Type union exception:** type union `|` stays **leading** — declarative member listing where left-edge alignment aids readability (Prettier default). Intersection `&` stays trailing. **Ternary exception:** `?`/`:` stays leading. For long `if`/`while` conditions, break right after `(` and put `)` on its own line. **String literal rule:** 문자열/템플릿 리터럴을 `+` 연결로 쪼개지 않는다. 120자 초과 시 호출 구조를 줄바꿈(인자 분리, 변수 추출)하되 문자열 자체는 한 줄 유지. 구조 줄바꿈 후에도 문자열 라인이 120자를 초과하면 예외 허용.
-
-```ts
-// Good
-const {
-    workplace,
-    transport,
-    warehouse,
-} = ctx;
-
-if (
-    a !== undefined && a !== null &&
-    b !== undefined
-) { ... }
-
-type Result =
-    | SuccessResponse
-    | ErrorResponse;
-
-type Tags = TagsFrom<typeof WRITE_BLOCK> &
-    TagsFrom<typeof READ_BLOCKS>;
-
-const x = isAttach
-    ? highestFront
-    : highFront;
-```
+When wrapping a line over 120 chars: **one item per line** (destructuring, literals, params, args, imports) and **trailing operator** (`&&`, `||` at line end, not line start). Exceptions: type union `|` stays **leading**, ternary `?`/`:` stays **leading**, intersection `&` stays trailing. For long `if`/`while` conditions, break right after `(` and put `)` on its own line. 문자열/템플릿 리터럴을 `+` 연결로 쪼개지 않는다 — 호출 구조를 줄바꿈하되 문자열 자체는 한 줄 유지 (120자 초과 시 예외 허용).
 
 ## Type/Interface Section — No Blank Lines Between
 
 Type and interface declarations form one section. No blank lines between them. One blank line only after the entire section ends (before const).
 
-```ts
-// Good
-type FooTags = TagsFrom<typeof WRITE_BLOCK>;
-interface FooOptions {
-    driver: string;
-}
-interface BarConfig {
-    host: string;
-}
-
-const DEFAULT_TIMEOUT = 3000;
-
-// Bad — blank lines between types/interfaces
-type FooTags = TagsFrom<typeof WRITE_BLOCK>;
-
-interface FooOptions { ... }
-
-interface BarConfig { ... }
-```
-
 ## Blank Line After Variable Declarations
 
 Consecutive `const`/`let`/`var` declarations form **one block**. No blank lines within the block. **One blank line after the block ends** — even before `return`. Applies to all blocks (function body, if, else, try, catch). Applies regardless of initializer form (simple value, object literal, multi-line callback).
-
-```
-// Good
-const auth = new Auth({ username, password });
-const res = await auth.request({ url });
-
-this.setConnected(true);
-
-// Good — blank line before return too
-const state = this.getSocketState();
-
-return !state || state === WebSocket.CLOSED;
-
-// Bad — blank line between consecutive const
-const auth = new Auth({ username, password });
-
-const res = await auth.request({ url });
-```
 
 ## Blank Line Between Method/Function Definitions
 
@@ -227,35 +119,7 @@ Prefer the most restrictive access modifier: private > protected > public. Use p
 
 ## No Unnecessary Blank Lines Inside Methods
 
-Blank lines inside method bodies are allowed **only after variable declaration blocks**. No blank lines:
-- Between execution statements
-- Before/after any `}` (if/else/try/catch/for/while/forEach/callbacks)
-- Before/after comments
-
-This applies to nested blocks too.
-
-```
-// Good
-create = () => {
-    const driver = drivers.get(options);
-
-    if (driver?.ref) {
-        this.setComm(driver.ref);
-    }
-    this.addWriteBlock(WRITE_BLOCK);
-    items.forEach((item) => {
-        this.addReadBlock(item);
-    });
-    this.init();
-};
-
-// Bad — blank line after }
-if (condition) {
-    doSomething();
-}
-
-doOther();  // ← remove blank line above
-```
+Blank lines inside method bodies are allowed **only after variable declaration blocks**. No blank lines between execution statements, before/after `}` blocks, or before/after comments. Applies to nested blocks too.
 
 ## Remove Unnecessary async
 
@@ -297,13 +161,6 @@ Default: wrap **entire function body**. Partial try-catch only when error handli
 ## User-Friendly Error Messages
 
 Write error messages that non-technical people can understand. Avoid internal terms (tags, registers, instances).
-
-```
-// Good
-throw new Error('Cannot verify warehouse control status.');
-// Bad
-throw new Error('warehouse.control tag missing');
-```
 
 ## Avoid Abbreviations
 
