@@ -224,7 +224,7 @@
       "Bash(pkill -f \"python3 -m http.server 8888\")",
       "Bash(while read:*)",
       "Bash(do git:*)",
-      "Bash(sort -t'\u2192' -k2 -n)",
+      "Bash(sort -t'→' -k2 -n)",
       "Read(//= \\\\\\(.*\\\\\\) =>/{name=$1} /return this\\\\._callApi/**)",
       "Read(//home/tayou/Desktop/codes/bss-core/scada-web/**)",
       "Bash(*)",

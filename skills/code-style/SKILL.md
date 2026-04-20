@@ -357,6 +357,12 @@ When `extends` condition in conditional types exceeds one line or same structure
 
 Callback release, listener removal, schedule cancellation — place cleanup logic inside the method that owns the resource, not in callers. Otherwise other call paths may miss cleanup.
 
+## Logging Quality
+
+- Log constant/config values once at initialization, not on every call.
+- Log state after the action (or in `finally`), not before — pre-action logs capture stale state.
+- Skip logging when nothing meaningful changed (idle/zero state). Only log when there's actual activity or warning conditions.
+
 ## Post-Change Verification
 
 After completing code changes, run `npx eslint` on changed files. Report new errors and warnings to user. Changes must not increase the ESLint error/warning count compared to before the change.
