@@ -5,14 +5,32 @@ sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 
 data = json.load(sys.stdin)
 
-# User email from OAuth account
+# User email + login method from OAuth account
 user_email = ''
+login_method = ''
 try:
     config_dir = os.environ.get('CLAUDE_CONFIG_DIR', os.path.expanduser('~/.claude'))
     with open(os.path.join(os.path.dirname(config_dir), '.claude.json'), encoding='utf-8') as f:
-        user_email = json.load(f).get('oauthAccount', {}).get('emailAddress', '')
+        claude_cfg = json.load(f)
+        oauth = claude_cfg.get('oauthAccount', {})
+        user_email = oauth.get('emailAddress', '')
+        billing = oauth.get('billingType', '')
+        if billing == 'stripe_subscription':
+            login_method = 'Subscription'
+        elif oauth:
+            login_method = 'Claude'
 except Exception:
     pass
+
+# Override with 3rd-party / API key if detected
+if os.environ.get('CLAUDE_CODE_USE_BEDROCK'):
+    login_method = 'Bedrock'
+elif os.environ.get('CLAUDE_CODE_USE_VERTEX'):
+    login_method = 'Vertex'
+elif os.environ.get('CLAUDE_CODE_USE_FOUNDRY'):
+    login_method = 'Foundry'
+elif os.environ.get('ANTHROPIC_API_KEY'):
+    login_method = 'API Console'
 
 # Basic info
 model = data.get('model', {}).get('display_name', '')
@@ -100,11 +118,12 @@ for key, label in [('five_hour', '5h'), ('seven_day', '7d')]:
             rate_parts.append(f'{rc}[{label}: {rpct}%]{RESET}')
 rate_str = ' '.join(rate_parts)
 
-# Line 1: model, directory, branch + git status, user email
-email_str = f' | 👤 {DIM}{user_email}{RESET}' if user_email else ''
-print(f'{CYAN}[{model}]{RESET} 📁 {directory}{branch}{email_str}')
+# Line 1: user email + login method, directory, branch + git status
+method_str = f' {DIM}({login_method}){RESET}' if login_method else ''
+user_str = f'👤 {DIM}{user_email}{RESET}{method_str}' if user_email else (method_str if login_method else '')
+print(f'{user_str} | 📁 {directory}{branch}' if user_str else f'📁 {directory}{branch}')
 
-# Line 2: context bar, tokens, cost, duration, rate limits
+# Line 2: model, context bar, tokens, cost, duration, rate limits
 def fmt_tokens(n):
     if n >= 1_000_000: return f'{n/1_000_000:.1f}M'
     if n >= 1_000: return f'{n/1_000:.0f}k'
@@ -114,7 +133,7 @@ cache_total = cache_read + cache_create
 cache_pct = int(cache_read * 100 / cache_total) if cache_total > 0 else 0
 cache_str = f' C:{cache_pct}%' if cache_total > 0 else ''
 
-line2 = f'{bar_color}{bar}{RESET} {pct}% | 🔤 {DIM}in:{fmt_tokens(total_in)} out:{fmt_tokens(total_out)}{cache_str}{RESET} | 💰 {YELLOW}${cost:.2f}{RESET} | ⏱️ {mins}m{secs}s'
+line2 = f'{CYAN}[{model}]{RESET} {bar_color}{bar}{RESET} {pct}% | 🔤 {DIM}in:{fmt_tokens(total_in)} out:{fmt_tokens(total_out)}{cache_str}{RESET} | 💰 {YELLOW}${cost:.2f}{RESET} | ⏱️ {mins}m{secs}s'
 if rate_str:
     line2 += f' | {rate_str}'
 print(line2)
