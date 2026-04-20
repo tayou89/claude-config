@@ -309,6 +309,10 @@ throw new Error('warehouse.control tag missing');
 
 Use full words in variable names, function names, and **type/interface names** unless the name becomes unreasonably long.
 
+## Value Names Follow Source of Truth
+
+When a data source (backend API, protocol, external system) already defines value names (enum values, status strings, constants), consumers MUST use the same names directly. Never create consumer-specific aliases that require a mapping layer (e.g. backend `'FULL'` → frontend `'fullCharge'`). Display labels that differ from data values belong in the rendering layer (e.g. a label map for UI text), not as renamed data values.
+
 ## check vs is Naming
 
 | Prefix | Role | Returns | Example |
