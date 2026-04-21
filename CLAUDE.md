@@ -88,6 +88,7 @@ When a new rule is added, audit all current project deliverables for violations.
 - Keep VSCode Source Control showing only current task changes. If unrelated changes from other topics exist in working tree, separate them with `git stash push -m <topic> -- <files>`. Pop when ready to commit that topic.
 - Before creating/switching branches: `git status` first. Uncommitted changes worth keeping → propose commit. Unrelated/disposable changes → restore/stash. Never carry unrelated changes into a new branch.
 - Compressed files (.gz, .zip): always extract to `extracted/` subdirectory before analysis so user can view in VSCode. Report with file paths and line numbers. User cleans up extracted folder.
+- Runtime test fixes: bugs found during testing belong to the source project (fix in bss-core, not work around in consumer). Only change the consumer when the fix is consumer-specific (e.g. import style change). Iterate test→fix→rebuild→retest until both sides show zero errors.
 
 ## Autonomous Execution
 
