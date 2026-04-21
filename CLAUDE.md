@@ -86,6 +86,7 @@ When a new rule is added, audit all current project deliverables for violations.
 ## Visibility and Git Hygiene
 
 - Keep VSCode Source Control showing only current task changes. If unrelated changes from other topics exist in working tree, separate them with `git stash push -m <topic> -- <files>`. Pop when ready to commit that topic.
+- Before creating/switching branches: `git status` first. Uncommitted changes worth keeping → propose commit. Unrelated/disposable changes → restore/stash. Never carry unrelated changes into a new branch.
 - Compressed files (.gz, .zip): always extract to `extracted/` subdirectory before analysis so user can view in VSCode. Report with file paths and line numbers. User cleans up extracted folder.
 
 ## Autonomous Execution
