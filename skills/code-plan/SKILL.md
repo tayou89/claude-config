@@ -22,6 +22,10 @@ Ensure `claude-plans/` exists in the project root. Verify `claude-plans/` is in 
 
 If plan includes code changes, read `code-style` skill and apply rules to diff code and implementation code.
 
+## Language
+
+All plan content (headings, descriptions, steps, commit messages) MUST be written in **English**.
+
 ## 4. Plan Format
 
 New plan = v1, revision = previous version + 1.
