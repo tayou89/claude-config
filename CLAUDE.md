@@ -6,7 +6,7 @@ All Claude rules, skills, CLAUDE.md files, and memory files (MEMORY.md index + i
 
 ## Rule Writing Style
 
-Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sentence over a verbose bullet list. Don't enumerate what a general statement already covers.
+Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sentence over a verbose bullet list. Don't enumerate what a general statement already covers. All global CLAUDE.md rules must be **language-agnostic and project-agnostic** — never reference specific project names, file paths, or tech stacks. Rules tied to a specific language, framework, or tool (e.g. TypeScript patterns, React conventions, Go idioms) must live in a dedicated skill, not in global CLAUDE.md. Language/tool-specific skills are not "project-specific" — they apply across all projects using that language/tool, but they are still scoped by their trigger condition.
 
 ## Skill Management
 
@@ -88,7 +88,19 @@ When a new rule is added, audit all current project deliverables for violations.
 - Keep VSCode Source Control showing only current task changes. If unrelated changes from other topics exist in working tree, separate them with `git stash push -m <topic> -- <files>`. Pop when ready to commit that topic.
 - Before creating/switching branches: `git status` first. Uncommitted changes worth keeping → propose commit. Unrelated/disposable changes → restore/stash. Never carry unrelated changes into a new branch.
 - Compressed files (.gz, .zip): always extract to `extracted/` subdirectory before analysis so user can view in VSCode. Report with file paths and line numbers. User cleans up extracted folder.
-- Runtime test fixes: bugs found during testing belong to the source project (fix in bss-core, not work around in consumer). Only change the consumer when the fix is consumer-specific (e.g. import style change). Iterate test→fix→rebuild→retest until both sides show zero errors.
+- Runtime test fixes: bugs found during testing belong to the source library, not the consumer. Only change the consumer when the fix is consumer-specific (e.g. import style change). Iterate test→fix→rebuild→retest until both sides show zero errors.
+
+## Integration Testing Workflow
+
+When running integration/runtime tests against a live or simulated environment:
+
+1. **Verify infrastructure first**: Confirm all external dependencies (servers, simulators, databases, message brokers) are reachable before testing application logic. Abort early if infrastructure is broken.
+2. **Structured test execution**: Organize tests bottom-up — unit-level equipment/module tests first, then controller/service tests, then end-to-end scenarios, then error/recovery, then soak tests. Track each test case with ID, status (PASS/FAIL/SKIP), and notes.
+3. **Monitor-trigger-verify loop**: For each test — trigger the action, capture logs immediately (`pm2 logs`, `docker logs`, `journalctl`, etc.), verify (a) no runtime errors, (b) expected output, (c) expected state changes.
+4. **Fix at the source**: Runtime bugs belong to the source project, not the test harness or consumer. Fix root cause → rebuild → restart → retest. Grep for the same pattern project-wide before moving on.
+5. **Remote environment diagnosis**: When the system under test connects to remote services (simulators, testbeds, external APIs), verify whether failures originate locally or remotely. Use SSH, network tools, or remote logs to confirm before assuming a code bug.
+6. **Soak test**: After all manual tests pass, let the system run unattended for a defined period and verify zero errors in logs.
+7. **Clean revert**: After testing, revert all test-specific config changes (environment switches, commented-out code, dependency overrides). Never commit test-only modifications.
 
 ## Autonomous Execution
 
