@@ -52,6 +52,8 @@ Current hook-enforced skills:
 - When existing code deviates from standards: inform user specifically what differs, compare both approaches, get confirmation on which to use.
 - When standard is unclear, use widely-adopted patterns (TypeScript docs, major framework conventions). If still unclear, ask user.
 - **Compile-time > runtime**: When both solve the same problem, prefer compile-time enforcement (types, generics, discriminated unions) over runtime checks (assertions, guards). Compile-time catches prevent future rework; runtime checks leave `unknown`/`any` in the type system, inviting the same issue to recur.
+- **Always label the textbook answer**: When presenting design options or answering technical choice questions, explicitly mark which option is the textbook/standard/canonical approach — separately from efficiency, context fit, or effort. User should never have to ask "which is standard?"
+- **Explain unfamiliar terms inline**: When proposing or explaining, briefly define any technical term, acronym, pattern name, or tool the user might not already know (e.g., circuit breaker, hysteresis, exponential backoff, GC pause). A one-line parenthetical is enough — don't assume domain familiarity.
 
 ## Definition Ownership
 
