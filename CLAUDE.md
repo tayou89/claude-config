@@ -100,9 +100,10 @@ When running integration/runtime tests against a live or simulated environment:
 2. **Structured test execution**: Organize tests bottom-up — unit-level equipment/module tests first, then controller/service tests, then end-to-end scenarios, then error/recovery, then soak tests. Track each test case with ID, status (PASS/FAIL/SKIP), and notes.
 3. **Monitor-trigger-verify loop**: For each test — trigger the action, capture logs immediately (`pm2 logs`, `docker logs`, `journalctl`, etc.), verify (a) no runtime errors, (b) expected output, (c) expected state changes.
 4. **Fix at the source**: Runtime bugs belong to the source project, not the test harness or consumer. Fix root cause → rebuild → restart → retest. Grep for the same pattern project-wide before moving on.
-5. **Remote environment diagnosis**: When the system under test connects to remote services (simulators, testbeds, external APIs), verify whether failures originate locally or remotely. Use SSH, network tools, or remote logs to confirm before assuming a code bug.
-6. **Soak test**: After all manual tests pass, let the system run unattended for a defined period and verify zero errors in logs.
-7. **Clean revert**: After testing, revert all test-specific config changes (environment switches, commented-out code, dependency overrides). Never commit test-only modifications.
+5. **Set up proper preconditions**: When a test fails due to missing state (no battery in slot, wrong AGV position, stale data), set up the required preconditions and retest — never rationalize the failure as "simulator limitation" or "expected fail". Only mark a test as SKIP with explicit user approval after demonstrating that precondition setup is technically impossible.
+6. **Remote environment diagnosis**: When the system under test connects to remote services (simulators, testbeds, external APIs), verify whether failures originate locally or remotely. Use SSH, network tools, or remote logs to confirm before assuming a code bug.
+7. **Soak test**: After all manual tests pass, let the system run unattended for a defined period and verify zero errors in logs.
+8. **Clean revert**: After testing, revert all test-specific config changes (environment switches, commented-out code, dependency overrides). Never commit test-only modifications.
 
 ## Autonomous Execution
 
