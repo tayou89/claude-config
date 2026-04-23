@@ -24,7 +24,9 @@ If plan includes code changes, read `code-style` skill and apply rules to diff c
 
 ## Language
 
-All plan content (headings, descriptions, steps, commit messages) MUST be written in **English**.
+Plan content (headings, descriptions, steps) must be written in **Korean**.
+Filenames stay English kebab-case (filesystem convention).
+Commit messages follow git-commit skill rules separately.
 
 ## 4. Plan Format
 
