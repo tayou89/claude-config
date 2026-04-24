@@ -110,6 +110,8 @@ When running integration/runtime tests against a live or simulated environment:
 
 Execute terminal-doable tasks directly. Only ask user for browser/GUI actions. No "please run this command" instructions. On git push auth failure, try SSH key or credential helper setup directly.
 
+**Don't pivot test scope without approval**: When the user authorizes a specific test scope (e.g. "option 1 full cycle", "swap work start to end/cancel"), do not silently fall back to weaker verification (isolated unit test, init-only smoke test, code review) on hitting blockers. Hitting a blocker during authorized work requires one of: (1) actively fixing the blocker (SSH into testbed, orchestrate multi-API calls, modify config) and reporting progress, (2) explicitly requesting user help/approval to try an alternative approach, (3) stopping and asking how to proceed. Never declare a test "complete" or "passed" for a scope narrower than what was authorized.
+
 ## Security
 
 - Never expose tokens, API keys, passwords in output. Mask when displaying.
