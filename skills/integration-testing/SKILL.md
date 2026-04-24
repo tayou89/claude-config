@@ -26,6 +26,8 @@ Runtime bugs belong to the source project, not the test harness or consumer. Fix
 
 **Never SKIP a test** due to harness/flow issues. On any test failure: (1) identify root cause (application code vs flow/harness/preconditions), (2) fix the source regardless of which project it lives in, (3) retest and verify PASS, (4) only then move to the next test. Consumer-specific bugs (wrong params in test harness, stale test data) are still bugs that must be fixed.
 
+**Diagnose blockers, don't bypass**: When a test hits a stuck step, silent failure, or unexpected state, immediately diagnose the root cause. Never use workflow controls (STEP_OVER, retry, skip, force-cancel) or config changes to bypass without first understanding why. If the root cause is hard to fix, explain the analysis and proposed fix, get user approval, then proceed. Continuing past a blocker without understanding it means the next step's results can't be trusted.
+
 ## 5. Set Up Proper Preconditions
 
 When a test fails due to missing state (wrong initial data, wrong device position, stale records), set up the required preconditions and retest — never rationalize the failure as "simulator limitation", "expected fail", or "not a code issue" to justify skipping. Always attempt to set up required preconditions first using available tools/APIs. Only mark a test as SKIP with explicit user approval after demonstrating that precondition setup is technically impossible.
