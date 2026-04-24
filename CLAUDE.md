@@ -8,6 +8,8 @@ All Claude rules, skills, CLAUDE.md files, and memory files (MEMORY.md index + i
 
 Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sentence over a verbose bullet list. Don't enumerate what a general statement already covers. All global CLAUDE.md rules must be **language-agnostic and project-agnostic** — never reference specific project names, file paths, or tech stacks. Rules tied to a specific language, framework, or tool (e.g. TypeScript patterns, React conventions, Go idioms) must live in a dedicated skill, not in global CLAUDE.md. Language/tool-specific skills are not "project-specific" — they apply across all projects using that language/tool, but they are still scoped by their trigger condition.
 
+**Skills must also be project-agnostic**: skill descriptions and rule text use generic technical terms ("test simulators", "live backend", "log files", "message brokers"), never project-specific names (concrete server addresses, proprietary service names, domain-specific equipment). Project-specific guidance belongs in that project's CLAUDE.md, not a global skill.
+
 ## Skill Management
 
 Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new rule, place it in the most specific applicable skill first; only add to CLAUDE.md if the rule applies across all contexts. Always add a trigger rule in this CLAUDE.md specifying when a skill should be referenced. Propose splitting if a skill grows too large or mixes contexts.
@@ -25,6 +27,8 @@ Current hook-enforced skills:
 - **Non-trivial implementation**: Use `/plan` skill to write a plan and wait for explicit approval before coding. Simple Q&A, explanations, or minor fixes (typos, 1-2 line changes) skip this.
 - **Git commit**: Use `/git-commit` skill when a phase/unit of work completes. Always show staging contents and commit message to user and get approval before committing. Push also requires separate approval.
 - **Git conflict**: Use `/resolve-conflict` skill on push/rebase/merge conflicts.
+- **Integration/runtime test**: Read `integration-testing` skill before starting any test against a live or simulated environment (external dependencies: servers, simulators, databases, etc.).
+- **Agent use**: Read `agent-usage` skill before spawning any agent (sub-agent, team agent, parallel agents).
 
 ## Core Work Principles
 
@@ -66,22 +70,6 @@ All types, interfaces, constants, enums are defined and exported by the **provid
 - No duplicate definitions. Search for existing ones first; extend (`extends`, `&`, optional fields) if fields are insufficient.
 - **Derived constants** (arrays/maps derived from a const, e.g. `Object.values(X)`, `Object.keys(X)`): if **multiple consumers** use the same derivation → define in provider; if **single consumer** → define in that consumer file (don't preemptively pollute provider API).
 
-## Agent Usage
-
-- **Always get explicit permission** before creating any agent (sub-agent or team agent).
-- When proposing agents, specify: count, role/scope for each, and cost concerns if applicable.
-- Propose agent splitting when: accuracy drops on repetitive review, scope too wide for sequential processing, or mid-task when scope feels larger than expected.
-- **Parallelization preferred**: For long-running tasks (exhaustive audits, large analysis), prefer splitting into parallel agents. Show split plan and get approval.
-- **Proactive agent use**: When scope is large or thoroughness is needed, actively propose agents rather than doing everything sequentially. Approval is still required.
-- **Agent token budgeting**: Before proposing agents, estimate token cost (file count × avg complexity) and remaining budget. Adjust agent count accordingly — fewer agents with broader scope when budget is tight. Always show proposed count + rationale and get approval.
-- Team agent creation/deletion requires explicit approval.
-- **Cross-validation**: After non-trivial code changes (multi-file, structural) or plan writing, propose 2 sub-agents for independent review from different perspectives (e.g. code style / logic correctness, plan completeness / discussion alignment). Small changes (1-2 files, clear change) need only self-review. Must complete **before requesting user approval**.
-- **Plan rigor = code rigor**: Apply the same verification depth to plans as to code. Every classification ("fixable", "unavoidable", "redundant") must cite concrete evidence (line numbers, type resolution trace, actual tsc output). Never trust agent summaries without verifying key claims against actual code. For type-related issues, trace the full type resolution chain step by step before classifying.
-- **Reviewer scope**: All reviewers cover the **full change scope** from different perspectives, not split by file range. File-range splitting misses cross-cutting issues.
-- **Rule-based checklist review**: Review agents must **read all applicable skill files** (code-style, typescript, etc.) and project CLAUDE.md, then check each rule against the changed code systematically. Never review from memory or general impression — always open the rule files and verify rule-by-rule.
-- **Verification depth**: Verification agents must trace actual runtime variable values step-by-step, not just check code existence. "The code exists" ≠ "the code is correct."
-- **Exhaustive audits need the right agent config**: Never use `Explore` subagent for exhaustive audits — it is fast-and-shallow by design and will estimate/sample instead of checking every occurrence. For exhaustive work, use `general-purpose` subagent with `model: "opus"` explicitly, and include "Do not estimate. Check every single occurrence individually. Report exact counts, not approximations." in the prompt. If agent results look round-numbered or include phrases like "approximately" or "roughly", re-verify manually or re-run with stricter prompt.
-
 ## Retroactive Compliance
 
 When a new rule is added, audit all current project deliverables for violations. Propose agents if scope is large (with approval). Report and fix violations found.
@@ -91,26 +79,10 @@ When a new rule is added, audit all current project deliverables for violations.
 - Keep VSCode Source Control showing only current task changes. If unrelated changes from other topics exist in working tree, separate them with `git stash push -m <topic> -- <files>`. Pop when ready to commit that topic.
 - Before creating/switching branches: `git status` first. Uncommitted changes worth keeping → propose commit. Unrelated/disposable changes → restore/stash. Never carry unrelated changes into a new branch.
 - Compressed files (.gz, .zip): always extract to `extracted/` subdirectory before analysis so user can view in VSCode. Report with file paths and line numbers. User cleans up extracted folder.
-- Runtime test fixes: bugs found during testing belong to the source library, not the consumer. Only change the consumer when the fix is consumer-specific (e.g. import style change). Iterate test→fix→rebuild→retest until both sides show zero errors.
-
-## Integration Testing Workflow
-
-When running integration/runtime tests against a live or simulated environment:
-
-1. **Verify infrastructure first (hard prereq, not optional)**: BEFORE starting any integration test, actively probe every external endpoint declared in the test config — `ping` the host AND TCP port-check each port. Log results visibly. If ANY endpoint is down, abort test and investigate testbed FIRST before assuming code bug. "Should be up" is not verification. When you see connection errors mid-test, return to this step before diagnosing as code.
-2. **Structured test execution**: Organize tests bottom-up — unit-level equipment/module tests first, then controller/service tests, then end-to-end scenarios, then error/recovery, then soak tests. Track each test case with ID, status (PASS/FAIL/SKIP), and notes.
-3. **Monitor-trigger-verify loop**: For each test — trigger the action, capture logs immediately (`pm2 logs`, `docker logs`, `journalctl`, etc.), verify (a) no runtime errors, (b) expected output, (c) expected state changes.
-4. **Fix at the source**: Runtime bugs belong to the source project, not the test harness or consumer. Fix root cause → rebuild → restart → retest. Grep for the same pattern project-wide before moving on.
-5. **Set up proper preconditions**: When a test fails due to missing state (no battery in slot, wrong AGV position, stale data), set up the required preconditions and retest — never rationalize the failure as "simulator limitation" or "expected fail". Only mark a test as SKIP with explicit user approval after demonstrating that precondition setup is technically impossible.
-6. **Remote environment diagnosis**: When the system under test connects to remote services (simulators, testbeds, external APIs), verify whether failures originate locally or remotely. Use SSH, network tools, or remote logs to confirm before assuming a code bug.
-7. **Soak test**: After all manual tests pass, let the system run unattended for a defined period and verify zero errors in logs.
-8. **Clean revert**: After testing, revert all test-specific config changes (environment switches, commented-out code, dependency overrides). Never commit test-only modifications.
 
 ## Autonomous Execution
 
 Execute terminal-doable tasks directly. Only ask user for browser/GUI actions. No "please run this command" instructions. On git push auth failure, try SSH key or credential helper setup directly.
-
-**Don't pivot test scope without approval**: When the user authorizes a specific test scope (e.g. "option 1 full cycle", "swap work start to end/cancel"), do not silently fall back to weaker verification (isolated unit test, init-only smoke test, code review) on hitting blockers. Hitting a blocker during authorized work requires one of: (1) actively fixing the blocker (SSH into testbed, orchestrate multi-API calls, modify config) and reporting progress, (2) explicitly requesting user help/approval to try an alternative approach, (3) stopping and asking how to proceed. Never declare a test "complete" or "passed" for a scope narrower than what was authorized.
 
 ## Security
 
