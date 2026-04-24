@@ -97,7 +97,7 @@ When a new rule is added, audit all current project deliverables for violations.
 
 When running integration/runtime tests against a live or simulated environment:
 
-1. **Verify infrastructure first**: Confirm all external dependencies (servers, simulators, databases, message brokers) are reachable before testing application logic. Abort early if infrastructure is broken.
+1. **Verify infrastructure first (hard prereq, not optional)**: BEFORE starting any integration test, actively probe every external endpoint declared in the test config — `ping` the host AND TCP port-check each port. Log results visibly. If ANY endpoint is down, abort test and investigate testbed FIRST before assuming code bug. "Should be up" is not verification. When you see connection errors mid-test, return to this step before diagnosing as code.
 2. **Structured test execution**: Organize tests bottom-up — unit-level equipment/module tests first, then controller/service tests, then end-to-end scenarios, then error/recovery, then soak tests. Track each test case with ID, status (PASS/FAIL/SKIP), and notes.
 3. **Monitor-trigger-verify loop**: For each test — trigger the action, capture logs immediately (`pm2 logs`, `docker logs`, `journalctl`, etc.), verify (a) no runtime errors, (b) expected output, (c) expected state changes.
 4. **Fix at the source**: Runtime bugs belong to the source project, not the test harness or consumer. Fix root cause → rebuild → restart → retest. Grep for the same pattern project-wide before moving on.
