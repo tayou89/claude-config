@@ -72,3 +72,9 @@ Mark version as `APPROVED` and begin implementation.
 
 **Design changes** (logic, API, architecture): write new version (v{N+1}), mark previous as SUPERSEDED, get approval.
 **Minor fixes** (params, typos, user-directed): inline edit in current version, no separate approval needed.
+
+## 8. Commit Granularity
+
+Plan steps ≠ commit count. Group steps so each commit is **independently buildable, self-sufficient (a reviewer understands why without reading the next commit), and revertable as one topic**. Write proposed commit groups in the plan alongside the step list — don't default to one-commit-per-step.
+
+A definition/schema/helper + its first consumer typically belong in one commit ("introduce X" with X actually used). Definition-only commits leave dead-code reads. If a definition-only commit was already made and the next step completes the picture, amend (`git commit --amend`) with the consumer before pushing rather than landing the orphan commit.
