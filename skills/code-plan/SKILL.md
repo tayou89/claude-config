@@ -77,4 +77,6 @@ Mark version as `APPROVED` and begin implementation.
 
 Plan steps ≠ commit count. Group steps so each commit is **independently buildable, self-sufficient (a reviewer understands why without reading the next commit), and revertable as one topic**. Write proposed commit groups in the plan alongside the step list — don't default to one-commit-per-step.
 
-A definition/schema/helper + its first consumer typically belong in one commit ("introduce X" with X actually used). Definition-only commits leave dead-code reads. If a definition-only commit was already made and the next step completes the picture, amend (`git commit --amend`) with the consumer before pushing rather than landing the orphan commit.
+Belong-together signals: a definition with its first consumer ("introduce X" with X actually used); a producer change with the contract tightening it enables; small follow-up cleanup that depends on a prior structural change. If splitting them leaves one commit reading as "why is Y still stale?", fold into one. Decide by topic, not by step count or LOC.
+
+If a partial commit was already made and the follow-up completes the picture, amend (`git commit --amend`) before pushing rather than landing the orphan commit.
