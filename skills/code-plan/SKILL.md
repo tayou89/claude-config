@@ -80,3 +80,11 @@ Plan steps ≠ commit count. Group steps so each commit is **independently build
 Belong-together signals: a definition with its first consumer ("introduce X" with X actually used); a producer change with the contract tightening it enables; small follow-up cleanup that depends on a prior structural change. If splitting them leaves one commit reading as "why is Y still stale?", fold into one. Decide by topic, not by step count or LOC.
 
 If a partial commit was already made and the follow-up completes the picture, amend (`git commit --amend`) before pushing rather than landing the orphan commit.
+
+## 9. Verification Batching
+
+Verification with high setup cost (live runtime, simulator startup, external service stubs, manual operator steps) should be **batched across plans that touch the same system or pattern**. Don't run the same expensive verification twice when one round can cover both.
+
+Batch-together signals: shared external system, shared simulator/harness setup, shared operator-driven flow, same pattern being introduced across multiple plans (validation, retry, caching, etc.). Don't batch unrelated topics — a problem in one section blocks the whole batch.
+
+When deferring verification, record in the plan **what other plans the verification will batch with** so the deferral isn't forgotten and individual plans don't get pushed without coverage.
