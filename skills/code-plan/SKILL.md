@@ -18,9 +18,17 @@ Ensure `claude-plans/` exists in the project root. Verify `claude-plans/` is in 
 - **Split rule**: If parent file exceeds ~30k tokens OR a task is conceptually separate, create a child plan following the structure above. Include `### Parent Plan` section with sibling path (`plan-foo.md`) or ancestor path (`../plan-foo.md`), version, task reference, prerequisites. Update parent's task entry with a cross-reference to the new file.
 - **Completion marking**: When a plan's latest version's work is fully complete (all implementation steps committed, no follow-up scope remaining, no further versions expected), rename `plan-foo.md` to `plan-foo.done.md` and change the latest version's status line to `COMPLETED`. Parent plan references to this file must update to the new `.done.md` suffix. Plans with any pending/active work stay as `plan-foo.md`. Filter active plans with `find claude-plans -name 'plan-*.md' ! -name '*.done.md'`.
 
-## 3. Reference Code Style
+## 3. Reference Relevant Skills
 
-If plan includes code changes, read `code-style` skill and apply rules to diff code and implementation code.
+Plans must apply the same skill rules as implementation code. Before drafting diff blocks or step descriptions, read every skill whose trigger condition matches the plan's content. Common cases:
+
+- **code-style**: any code change
+- **typescript**: `.ts` file changes — includes type-system reasoning needed at planning time (e.g. structural-compat check before declaring an index signature dead)
+- **typescript-migration**: JS→TS conversion
+- **integration-testing**: live/simulator runtime test
+- **agent-usage**: plans that spawn agents
+
+Skipping this step produces avoidable plan revisions when implementation surfaces skill-documented constraints.
 
 ## Language
 
