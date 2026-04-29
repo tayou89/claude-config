@@ -30,13 +30,17 @@ Plans must apply the same skill rules as implementation code. Before drafting di
 
 Skipping this step produces avoidable plan revisions when implementation surfaces skill-documented constraints.
 
+## 4. Pattern Alignment Check
+
+For structural decisions (new file layout, where a new type lives, module split, naming), grep 2-3 analogous cases in the same codebase. Match the dominant local pattern, or justify the deviation in the plan. Skill rules don't override local conventions. If no precedent exists, flag it.
+
 ## Language
 
 Plan content (headings, descriptions, steps) must be written in **Korean**.
 Filenames stay English kebab-case (filesystem convention).
 Commit messages follow git-commit skill rules separately.
 
-## 4. Plan Format
+## 5. Plan Format
 
 New plan = v1, revision = previous version + 1.
 
@@ -68,20 +72,20 @@ Module relationships, data flow, inheritance in ASCII diagrams. Skip for simple 
 
 **Revision rules**: Mark previous version as `SUPERSEDED`. New version must be **independent and complete** — don't reference previous versions ("same as v2"). Keep previous versions as history.
 
-## 5. Request Approval
+## 6. Request Approval
 
 Show plan summary and wait for **explicit approval**. No implementation code before approval.
 
-## 6. After Approval
+## 7. After Approval
 
 Mark version as `APPROVED` and begin implementation.
 
-## 7. Mid-Implementation Changes
+## 8. Mid-Implementation Changes
 
 **Design changes** (logic, API, architecture): write new version (v{N+1}), mark previous as SUPERSEDED, get approval.
 **Minor fixes** (params, typos, user-directed): inline edit in current version, no separate approval needed.
 
-## 8. Commit Granularity
+## 9. Commit Granularity
 
 Plan steps ≠ commit count. Group steps so each commit is **independently buildable, self-sufficient (a reviewer understands why without reading the next commit), and revertable as one topic**. Write proposed commit groups in the plan alongside the step list — don't default to one-commit-per-step.
 
@@ -89,7 +93,7 @@ Belong-together signals: a definition with its first consumer ("introduce X" wit
 
 If a partial commit was already made and the follow-up completes the picture, amend (`git commit --amend`) before pushing rather than landing the orphan commit.
 
-## 9. Verification Batching
+## 10. Verification Batching
 
 Verification with high setup cost (live runtime, simulator startup, external service stubs, manual operator steps) should be **batched across plans that touch the same system or pattern**. Don't run the same expensive verification twice when one round can cover both.
 
