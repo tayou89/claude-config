@@ -143,6 +143,15 @@ It's a variant of `unknown`. Before using, check: (1) trace actual fields, (2) d
 
 **Allowed**: external API metadata, undocumented library options, generic constraints (`TTags extends Record<string, unknown>`).
 
+## Index Signature Removal
+
+Before removing `[key: string]: T` from an interface, verify **both**:
+
+1. **No dynamic key access** in consumers (`obj[anyKey]`, `Object.keys(obj).forEach(...)`)
+2. **No structural-compat consumer** — no caller accepts the type as `Record<string, T>` / `{ [k: string]: T }`, and no field passes it to a parameter of such a type
+
+An interface without an explicit index signature is NOT assignable to `Record<string, T>` even when all field types match — this is a TS structural-typing limitation. Skipping #2 produces TS2345 "Index signature for type X is missing" at consumer call sites after removal. The index sig may *look* dead by access pattern but be load-bearing for structural compat.
+
 ## External Library `.d.ts` Declarations
 
 For libraries without `@types/`: methods accepting/returning "anything" should use `unknown`, not `Record<string, unknown>`. The latter forces downstream code to add `[key: string]: unknown` index signatures, causing type pollution.
