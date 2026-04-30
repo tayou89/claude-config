@@ -49,6 +49,7 @@
       "Bash(npm run:*)",
       "Skill(git-commit)",
       "Skill(git-commit:*)",
+      "Bash(/home/tayou/.claude/scripts/claude-commit.sh:*)",
       "Bash(git config:*)",
       "Bash(xargs -I {} basename {})",
       "Bash(yarn build:*)",
@@ -359,7 +360,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 -c 'import sys, json, re; d = json.load(sys.stdin); c = d.get(\"tool_input\", {}).get(\"command\", \"\"); print(json.dumps({\"hookSpecificOutput\": {\"hookEventName\": \"PreToolUse\", \"permissionDecision\": \"deny\", \"permissionDecisionReason\": \"git commit direct execution blocked. Use /git-commit skill first (staging review + commit message + explicit user approval). The skill will prepend CLAUDE_SKILL_GIT_COMMIT=1 to bypass this hook.\"}})) if re.search(r\"(^|[^a-zA-Z_])git\\s+commit(\\s|$)\", c) and \"CLAUDE_SKILL_GIT_COMMIT=1\" not in c else None'"
+            "command": "python3 /home/tayou/.claude/scripts/git-commit-hook.py"
           }
         ]
       },
@@ -390,5 +391,6 @@
   "enabledPlugins": {
     "discord@claude-plugins-official": true
   },
-  "autoUpdatesChannel": "latest"
+  "autoUpdatesChannel": "latest",
+  "theme": "dark"
 }

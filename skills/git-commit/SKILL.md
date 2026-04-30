@@ -1,24 +1,24 @@
 ---
 name: git-commit
-description: Review changes, write commit message, and commit with user approval.
+description: Review changes, write commit message, and commit with user approval via the claude-commit.sh wrapper.
 ---
 
 # Commit Workflow
+
+All commits MUST go through `~/.claude/scripts/claude-commit.sh`. Direct `git commit` is denied by a PreToolUse hook with no bypass. The wrapper enforces the full checklist (subject prefix, line-length, body-lines, bullet-count, internal-terms, amend check, staged-stat review, stage-matches-argv) automatically — Claude can no longer skip a step.
 
 ## 1. Branch Check (First Commit of Session Only)
 
 Check current branch with `git branch --show-current`. If on `main`, `dev`, or other base branch, ask user if they want a new working branch (e.g. `fix/xxx`, `feat/xxx`). Skip if already on a working branch (`fix/`, `feat/`, `refactor/`). Skip for subsequent commits.
 
-## 2. Review Changes
+## 2. Review Changes (informational, before drafting message)
 
 ```bash
 git status
 git diff --stat
 ```
 
-## 3. Code Review
-
-Before writing commit message, review changed code:
+## 3. Code Review (before drafting message)
 
 - **Logic errors/bugs**: race conditions, uninitialized vars, missing error handling
 - **Commit scope**: no unrelated changes (test config, debug code, other features) mixed in
@@ -39,45 +39,65 @@ Report: "Code review done — no issues" if clean. If issues found, report speci
 
 **Type** (capitalized): `Feat`, `Fix`, `Refactor`, `Chore`, `Merge`
 
-**Subject**: English, start with verb (add, fix, update, remove), no period, specific, max 72 chars (50 recommended).
+**Subject**: English, start with verb (add, fix, update, remove), no period, specific, **≤72 chars** (50 recommended).
 
-**Body**: English `- ` bullets after blank line. First bullet carries purpose (*why* + *what*). 3-5 bullets, ~6-8 lines total. Focus on context not visible from diff — delete bullets that restate the diff. No internal terms (Step 1, Phase 2-a). Max 72 chars/line. Merge commits: list branches and conflict resolution.
+**Body**: English `- ` bullets after blank line. First bullet carries purpose (*why* + *what*). **3-5 bullets, ≤8 non-blank body lines, ≤72 chars/line**. Focus on context not visible from diff — delete bullets that restate the diff. **No internal terms** (Step N, Phase N, Pattern N).
 
-## 5. Staging and Commit
+The wrapper rejects messages violating any of: type prefix, subject ≤72, line length ≤72, body lines 1-8, bullets 3-5, internal-term ban.
 
-**One commit = one topic.** If multiple topics are mixed, separate into multiple commits. `.ts` source and its build output (`.js`, `.js.map`) must be in the same commit.
+## 5. Show User Before Invoking Wrapper
 
-**Bug found during feature work**: if not yet committed, include in feature commit (no separate Fix). If already committed, amend into previous commit.
+Before running the wrapper, show user:
+- Drafted message (with line-length self-check noted)
+- File list to stage
+- One-line code-review summary
 
-**Staging verification (required)**: Before committing, show `git diff --cached --stat` to user and get approval. **Never run `git commit` without user approval.**
+Get explicit approval ("응 진행해줘" or equivalent). The wrapper then runs deterministically and commits.
 
-Remove unrelated files with `git restore --staged <file>` if found.
-
-**Hook bypass**: Direct `git commit` is blocked by a PreToolUse hook. The skill-driven commit MUST prepend `CLAUDE_SKILL_GIT_COMMIT=1` to bypass the hook. This env var has no runtime effect — it's purely a marker proving the skill workflow was followed.
+## 6. Run the Wrapper
 
 ```bash
-CLAUDE_SKILL_GIT_COMMIT=1 git commit -m "$(cat <<'EOF'
+~/.claude/scripts/claude-commit.sh "$(cat <<'EOF'
 <Type>: <subject>
 
-- <detail 1>
-- <detail 2>
+- <bullet 1>
+- <bullet 2>
+- <bullet 3>
 EOF
-)"
+)" <file1> <file2> ...
 ```
 
-For amend, same pattern: `CLAUDE_SKILL_GIT_COMMIT=1 git commit --amend ...`
+For amend:
 
-## 6. Amend Check
+```bash
+~/.claude/scripts/claude-commit.sh --amend "$(cat <<'EOF'
+<updated message>
+EOF
+)" <file1> ...
+```
 
-Check `git log --oneline -3` before committing. If current changes are a continuation/supplement of the previous commit:
+The wrapper:
+1. Validates subject prefix + length, body line length, body line count, bullet count, internal-term ban
+2. Prints `git log --oneline -3` for amend awareness
+3. Stages exact files passed as argv
+4. Prints `git diff --cached --stat`
+5. Verifies no extra files staged beyond argv (FAIL exit 3 otherwise)
+6. Prints verification table
+7. Invokes `git commit` (subprocess, hook does not re-fire) with `CLAUDE_SKILL_GIT_COMMIT=1` marker
+
+Exit codes: `0` success, `1` git error, `2` message validation, `3` staging mismatch, `4` usage error.
+
+## 7. Amend Check
+
+Before drafting a new commit, check `git log --oneline -3`. If current changes are a continuation/supplement of the previous commit:
 1. Propose `--amend` to user
-2. On approval: `git commit --amend -m "<updated message>"`
+2. On approval: invoke wrapper with `--amend`
 3. If already pushed: warn about `--force-with-lease` requirement
 
 Amend when: same file/same purpose, filling gaps from previous commit, same plan/feature.
 Don't amend: different purpose, already pulled by others.
 
-## 7. Push
+## 8. Push
 
 Ask user about push after commit. Push only on approval.
 
@@ -85,6 +105,6 @@ Ask user about push after commit. Push only on approval.
 
 - Never commit `.env`, auth keys, passwords
 - Never stage/commit unrelated changes
-- Use `git add -A` / `git add .` with caution
+- Use `git add -A` / `git add .` with caution (the wrapper stages exactly what argv specifies)
 - **No `Co-Authored-By`** or auto-generated trailers
 - `~/.claude/settings.json` changes should **always be included** in commits (syncs allowedTools across environments)
