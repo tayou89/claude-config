@@ -56,3 +56,22 @@ After testing, revert all test-specific config changes (environment switches, co
 ## 10. Preserve Logs
 
 Never truncate log files during testing (no `pm2 flush`, `truncate`, `docker logs --tail` overwrites, etc.). Intermittent errors may not reproduce on demand, and the only evidence is in the log file. Use `grep` on the full log file directly instead of relying on tail-window commands which may miss errors past the window.
+
+## 11. Test-Time Patches — Isolate, Document, Revert
+
+Test-time only changes (config switches like `config.test.sim`, simulator-friendly preset comments, debug-mode interval shortening, mock auth headers, etc.) MUST be isolated and reverted — never committed to source.
+
+- **Isolation**: keep test-time edits in a **labeled git stash** (`git stash push -m "test-patches: <project>"`) or a dedicated **test-only branch**. Never commit them to feature/main branches.
+- **Documentation**: enumerate the patch list (file + change description) in the project's CLAUDE.md or README. Stashes can be lost (manual `stash drop`, `git gc`); the documented list is the recovery source.
+- **Apply at session start**: `git stash list` → pop the labeled entry; if missing, re-apply manually from the documentation.
+- **Revert at session end**: re-stash with the same label, never commit. Verify `git diff --staged` is clean of test-patch files before any commit.
+- **Interval shortening**: if a test requires waiting on a periodic interval (cache refresh, retry backoff, etc.), shorten the constant temporarily as part of the test-patches stash. Don't shorten if the test is specifically validating the timing.
+
+## 12. Multi-Clone Integration Testing
+
+When integrating a test branch into a separate working clone (e.g., production `v1` clone consumes `typescript-migration` clone via `file:` reference), move changes between clones via standard git mechanisms — never ad-hoc directory copy:
+
+- **Preferred (no push needed)**: `git fetch ../<other-clone> <branch>` from the consuming clone, then `git checkout <branch>` or `git merge FETCH_HEAD`. Local-to-local fetch keeps the change set transparent and reversible.
+- **Alternative**: `git format-patch` from the source clone → `git am` in the consuming clone.
+- **Forbidden**: `cp -r <other-clone>/<files> <this-clone>/` or rsync-style copy. Bypasses git tracking, mixes test changes with working tree, and produces unreviewable state.
+- **Reference relink**: if the consuming clone uses `file:` npm reference (`"bss-core": "file:../../bss-core/v1"`), `npm install` after the checkout to refresh the link. `npm` may cache the old hard-link otherwise.
