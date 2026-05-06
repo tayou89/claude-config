@@ -119,10 +119,7 @@ echo
 
 echo "=== Staging files ==="
 for f in "${FILES[@]}"; do
-    if [[ ! -e "$f" ]]; then
-        echo "WARN: file not found in working tree: $f" >&2
-    fi
-    git add -- "$f"
+    git add -A -- "$f"
     echo "  + $f"
 done
 echo
