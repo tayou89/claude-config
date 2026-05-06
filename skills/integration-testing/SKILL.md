@@ -74,7 +74,10 @@ When integrating a test branch into a separate working clone (e.g., production `
 - **Preferred (no push needed)**: `git fetch ../<other-clone> <branch>` from the consuming clone, then `git checkout <branch>` or `git merge FETCH_HEAD`. Local-to-local fetch keeps the change set transparent and reversible.
 - **Alternative**: `git format-patch` from the source clone → `git am` in the consuming clone.
 - **Forbidden**: `cp -r <other-clone>/<files> <this-clone>/` or rsync-style copy. Bypasses git tracking, mixes test changes with working tree, and produces unreviewable state.
-- **Symlink-based consumer pattern (do NOT touch the consumer's `file:` ref)**: when the downstream consumer uses an `file:` npm symlink (e.g., node-RED → `bss-core/v1`), the standard way to swap source is to **swap the source clone's git branch**. The symlink stays as is. Editing the consumer's `package.json` to point at a different clone is forbidden.
+- **Symlink-based consumer with two source clones — workflow varies by user habit**: when the downstream consumer uses a `file:` npm symlink and there are multiple parallel source clones (e.g., `bss-core/v1` and `bss-core/typescript-migration`), there are two valid integration patterns. **Confirm with the user which one applies before any environment write**:
+  - **Pattern A (consumer ref swap)**: edit the consumer's `package.json` `file:` to point at the test clone, run `npm install` to relink. Revert at session end. The source clones stay on their own branches.
+  - **Pattern B (source branch swap)**: keep consumer's `file:` ref unchanged; in the source clone behind the symlink, `git checkout <test-branch>` so the working tree behind the symlink becomes the test code.
+  - **Anti-pattern**: assuming one is "the standard" without asking. The user's habit determines which is correct. Picking the wrong one will either corrupt the production source clone or appear to do nothing.
 
 ## 13. Respect User-Stated Mutation Scope
 
