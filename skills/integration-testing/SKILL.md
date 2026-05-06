@@ -74,4 +74,12 @@ When integrating a test branch into a separate working clone (e.g., production `
 - **Preferred (no push needed)**: `git fetch ../<other-clone> <branch>` from the consuming clone, then `git checkout <branch>` or `git merge FETCH_HEAD`. Local-to-local fetch keeps the change set transparent and reversible.
 - **Alternative**: `git format-patch` from the source clone → `git am` in the consuming clone.
 - **Forbidden**: `cp -r <other-clone>/<files> <this-clone>/` or rsync-style copy. Bypasses git tracking, mixes test changes with working tree, and produces unreviewable state.
-- **Reference relink**: if the consuming clone uses `file:` npm reference (`"bss-core": "file:../../bss-core/v1"`), `npm install` after the checkout to refresh the link. `npm` may cache the old hard-link otherwise.
+- **Symlink-based consumer pattern (do NOT touch the consumer's `file:` ref)**: when the downstream consumer uses an `file:` npm symlink (e.g., node-RED → `bss-core/v1`), the standard way to swap source is to **swap the source clone's git branch**. The symlink stays as is. Editing the consumer's `package.json` to point at a different clone is forbidden.
+
+## 13. Respect User-Stated Mutation Scope
+
+When the user authorizes a specific environment mutation (e.g., "switch nodered branch only", "change v1 to typescript-migration branch"), do NOT mutate anything outside that scope. Before any extra mutation (other files, other repos, package manifests, lockfiles, dependency caches, env vars), STOP and ask. Each unrelated mutation requires its own approval.
+
+- **Examples of out-of-scope mutations to avoid**: editing `package.json` `file:` refs when the user said "change branch", running `npm install` that rewrites lockfiles, deleting `node_modules`, modifying sibling repos, touching configs the user did not name.
+- **Reverting an unauthorized mutation does not absolve the violation** — the violation IS the mutation itself, regardless of whether it was reverted. Each silent extra mutation erodes trust and may leave subtle leftovers (lockfile diffs, cached symlinks, npm tarball cache).
+- **When in doubt about scope, ask "Should I also do X?" before doing X**. A 5-second confirmation is cheaper than an unwanted environment change.
