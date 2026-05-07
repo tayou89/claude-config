@@ -57,7 +57,7 @@ def main() -> None:
         return
 
     reason = (
-        "Direct git commit blocked. Use ~/.claude/scripts/claude-commit.sh "
+        "Direct git commit blocked. Use ~/.claude/scripts/claude-commit.py "
         "with message and files as args (prepend --amend if amending). "
         "The wrapper validates subject/body format (type prefix, line "
         "length, body lines, bullet count, no internal terms), runs "

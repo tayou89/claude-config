@@ -1,11 +1,11 @@
 ---
 name: git-commit
-description: Review changes, write commit message, and commit with user approval via the claude-commit.sh wrapper.
+description: Review changes, write commit message, and commit with user approval via the claude-commit.py wrapper.
 ---
 
 # Commit Workflow
 
-All commits MUST go through `~/.claude/scripts/claude-commit.sh`. Direct `git commit` is denied by a PreToolUse hook with no bypass. The wrapper enforces the full checklist (subject prefix, line-length, body-lines, bullet-count, internal-terms, amend check, staged-stat review, stage-matches-argv) automatically — Claude can no longer skip a step.
+All commits MUST go through `~/.claude/scripts/claude-commit.py`. Direct `git commit` is denied by a PreToolUse hook with no bypass. The wrapper enforces the full checklist (subject prefix, line-length, body-lines, bullet-count, internal-terms, amend check, staged-stat review, stage-matches-argv) automatically — Claude can no longer skip a step.
 
 ## 1. Branch Check (First Commit of Session Only)
 
@@ -57,7 +57,7 @@ Get explicit approval ("응 진행해줘" or equivalent). The wrapper then runs 
 ## 6. Run the Wrapper
 
 ```bash
-~/.claude/scripts/claude-commit.sh "$(cat <<'EOF'
+~/.claude/scripts/claude-commit.py "$(cat <<'EOF'
 <Type>: <subject>
 
 - <bullet 1>
@@ -70,7 +70,7 @@ EOF
 For amend:
 
 ```bash
-~/.claude/scripts/claude-commit.sh --amend "$(cat <<'EOF'
+~/.claude/scripts/claude-commit.py --amend "$(cat <<'EOF'
 <updated message>
 EOF
 )" <file1> ...
