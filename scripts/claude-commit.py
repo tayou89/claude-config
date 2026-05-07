@@ -2,7 +2,7 @@
 """claude-commit.py — wrapper enforcing git-commit skill checklist.
 
 Usage:
-    claude-commit.py [--amend] "<message>" <file1> [<file2> ...]
+    claude-commit.py [--amend] [--no-stage] "<message>" [<file1> ...]
 
 Validates message format (subject prefix/length, body line length/count,
 bullet count, no internal terms), runs amend check, stages exact files,
@@ -10,6 +10,11 @@ verifies no extras, prints verification table, then commits with
 CLAUDE_SKILL_GIT_COMMIT=1 marker. Subprocess git commit does NOT trigger
 Claude's PreToolUse hook (hooks fire at tool boundary only), so the
 checklist becomes the single enforced path.
+
+Use --no-stage when the index is already prepared by a prior git
+operation (e.g. merge --no-commit, cherry-pick) and re-staging via
+`git add` would fail (deleted/renamed paths) or override the prepared
+state. With --no-stage, file args are not required.
 
 Exit codes:
     0  success (commit created)
@@ -185,12 +190,22 @@ def do_commit(message: str, amend: bool) -> None:
 
 def main(argv: list[str]) -> None:
     amend = False
-    if argv and argv[0] == "--amend":
-        amend = True
-        argv = argv[1:]
-    if len(argv) < 2:
+    no_stage = False
+    while argv and argv[0].startswith("--"):
+        if argv[0] == "--amend":
+            amend = True
+            argv = argv[1:]
+        elif argv[0] == "--no-stage":
+            no_stage = True
+            argv = argv[1:]
+        else:
+            sys.stderr.write(f"Unknown option: {argv[0]}\n")
+            sys.exit(EXIT_USAGE)
+    min_args = 1 if no_stage else 2
+    if len(argv) < min_args:
         sys.stderr.write(
-            "Usage: claude-commit.py [--amend] \"<message>\" <file1> [<file2> ...]\n"
+            "Usage: claude-commit.py [--amend] [--no-stage] "
+            "\"<message>\" [<file1> ...]\n"
         )
         sys.exit(EXIT_USAGE)
     message = argv[0]
@@ -200,10 +215,14 @@ def main(argv: list[str]) -> None:
     metrics = validate_message(message)
     print("=== Recent commits ===")
     run_git(["log", "--oneline", "-3"])
-    stage_files(files)
-    print("=== Staged changes ===")
-    run_git(["diff", "--cached", "--stat"])
-    verify_staging(files)
+    if no_stage:
+        print("=== Staging skipped (--no-stage) ===")
+        run_git(["diff", "--cached", "--stat"])
+    else:
+        stage_files(files)
+        print("=== Staged changes ===")
+        run_git(["diff", "--cached", "--stat"])
+        verify_staging(files)
     print_verification(*metrics)
     print("=== Committing ===")
     do_commit(message, amend)

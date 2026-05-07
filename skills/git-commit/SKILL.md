@@ -76,12 +76,27 @@ EOF
 )" <file1> ...
 ```
 
+For merge / cherry-pick / other commits where the index is already prepared (re-staging would fail on deleted/renamed paths), use `--no-stage`:
+
+```bash
+~/.claude/scripts/claude-commit.py --no-stage "$(cat <<'EOF'
+Merge: <subject>
+
+- <bullet 1>
+- <bullet 2>
+- <bullet 3>
+EOF
+)"
+```
+
+`--no-stage` skips both `git add` and the stage-matches-argv check; the wrapper commits the existing index as-is. File args are optional with `--no-stage`.
+
 The wrapper:
 1. Validates subject prefix + length, body line length, body line count, bullet count, internal-term ban
 2. Prints `git log --oneline -3` for amend awareness
-3. Stages exact files passed as argv
+3. Stages exact files passed as argv (skipped with `--no-stage`)
 4. Prints `git diff --cached --stat`
-5. Verifies no extra files staged beyond argv (FAIL exit 3 otherwise)
+5. Verifies no extra files staged beyond argv (skipped with `--no-stage`; FAIL exit 3 otherwise)
 6. Prints verification table
 7. Invokes `git commit` (subprocess, hook does not re-fire) with `CLAUDE_SKILL_GIT_COMMIT=1` marker
 
