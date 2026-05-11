@@ -28,6 +28,7 @@ Current hook-enforced skills:
 - **Git commit**: Use `/git-commit` skill when a phase/unit of work completes. Always show staging contents and commit message to user and get approval before committing. Push also requires separate approval.
 - **Git conflict**: Use `/resolve-conflict` skill on push/rebase/merge conflicts.
 - **Integration/runtime test**: Read `integration-testing` skill before starting any test against a live or simulated environment (external dependencies: servers, simulators, databases, etc.).
+- **Config or env file**: Read `config-files` skill before creating or refactoring config modules, `.env` files, or env-driven setup.
 - **Agent use**: Read `agent-usage` skill before spawning any agent (sub-agent, team agent, parallel agents).
 
 ## Core Work Principles
