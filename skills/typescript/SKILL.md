@@ -122,6 +122,47 @@ When a base class/common module handles **different data structures per subclass
 
 **Generic classes**: Design common base with generics so subclasses specify concrete types. Callers shouldn't need to specify types manually each time.
 
+## Generic Variance — Plan-Time Check
+
+TypeScript generic types' variance is determined by how the parameter is used:
+
+- **Return position** (`get(): T`, `metadata?: T`, `() => Promise<T>`): **covariant** — `Container<narrow>` → `Container<wide>` is assignable
+- **Parameter position** (`set(x: T)`, `func(t: T)`): **contravariant** — `Container<wide>` → `Container<narrow>` is assignable
+- **Both** (`(x: T) => T`, or any field where `T` is in both an argument position and a return position): **invariant** — only exact match assignable
+
+**Plan-time rule**: When introducing a new generic or changing one in a widely-referenced interface, map every usage position of the type parameter explicitly:
+
+```
+Task<T>:
+  metadata?: T               → covariant
+  resolvedMetadata?: Resolved<T>  → covariant
+  resolve?: () => Promise<T> → covariant
+  Result: covariant, Task<narrow> assignable to Task<wide>
+```
+
+If any position is "both" (or any function has `T` in an argument position), expect invariance — pre-verify consumer compatibility on stubbed sample code before plan approval.
+
+**Common pitfall** — function field with `T` in argument:
+
+```ts
+interface Step<T> {
+    func: (x: Resolved<T>) => void;  // ← Resolved<T> in argument position
+}
+interface Container<T> {
+    steps: Step<T>;  // ← propagates argument-position usage of T
+}
+// → Container<T> is invariant — Container<Narrow> NOT assignable to Container<Wide>
+```
+
+Sibling generics (collections containing `Container<NarrowT>` typed as `Container<WideT>[]`) won't compile. This is a frequent silent-failure pattern when refactoring lazy callbacks.
+
+**Workarounds (order of preference)**:
+1. **Restructure**: keep `T` in return positions only (callbacks don't accept `T` as argument)
+2. **Method-level generic**: shift variance to call site with `method<U extends T>(x: U)`
+3. **Boundary cast in one controlled location** (last resort, only when 1 and 2 are infeasible)
+
+Generic variance is the most common cause of "plan compiles in isolation but fails when integrated" — always include variance mapping in plans that touch generic interfaces.
+
 ## Common Interfaces
 
 When multiple classes share the same methods, define a common interface with `implements`. Eliminates casts in factories/containers.

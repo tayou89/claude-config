@@ -72,20 +72,35 @@ Module relationships, data flow, inheritance in ASCII diagrams. Skip for simple 
 
 **Revision rules**: Mark previous version as `SUPERSEDED`. New version must be **independent and complete** — don't reference previous versions ("same as v2"). Keep previous versions as history.
 
-## 6. Request Approval
+## 6. Mock Feasibility Check (mandatory for type/signature-changing plans)
+
+When the plan changes generic signatures, interface contracts, callback signatures, or types used across multiple consumers/providers, perform a mock feasibility check **before requesting approval**:
+
+1. **Extract sample code's key signatures** — interface definitions, function signatures, generic declarations, call-site examples.
+2. **Stub consumers and providers** in a minimal scratch environment (or TypeScript playground for `.ts`).
+3. **Run the language's type checker** — `tsc --noEmit` for TypeScript, `mypy` for Python with type hints, `cargo check` for Rust, etc. Verify it passes against the stubbed environment.
+4. **Map variance positions** of every generic parameter in the plan (covariant / contravariant / invariant). Confirm the variance is what the plan assumes — sibling-generic assignability often fails silently when a callback puts `T` in argument position. See `typescript` skill "Generic Variance — Plan-Time Check" for details.
+5. **Trace internal call chains**. If method A calls method B, and B's signature changes, A must still compile. Map A→B→C... chains explicitly.
+6. **Record result in the plan body** — `Mock feasibility: passed` (with brief notes on what was stubbed) or `Mock feasibility: failed (reason)`.
+
+Failure → revise the plan before requesting approval. Don't defer this to implementation — implementation surprises ("the plan compiled in isolation but the whole project doesn't") almost always trace back to skipping this step.
+
+**Skip allowed only when**: the plan adds optional fields without changing existing signatures, generics, or call chains. Even then, briefly note `Mock feasibility: skipped (additive-only change)` in the plan body for traceability.
+
+## 7. Request Approval
 
 Show plan summary and wait for **explicit approval**. No implementation code before approval.
 
-## 7. After Approval
+## 8. After Approval
 
 Mark version as `APPROVED` and begin implementation.
 
-## 8. Mid-Implementation Changes
+## 9. Mid-Implementation Changes
 
 **Design changes** (logic, API, architecture): write new version (v{N+1}), mark previous as SUPERSEDED, get approval.
 **Minor fixes** (params, typos, user-directed): inline edit in current version, no separate approval needed.
 
-## 9. Commit Granularity
+## 10. Commit Granularity
 
 Plan steps ≠ commit count. Group steps so each commit is **independently buildable, self-sufficient (a reviewer understands why without reading the next commit), and revertable as one topic**. Write proposed commit groups in the plan alongside the step list — don't default to one-commit-per-step.
 
@@ -93,7 +108,7 @@ Belong-together signals: a definition with its first consumer ("introduce X" wit
 
 If a partial commit was already made and the follow-up completes the picture, amend (`git commit --amend`) before pushing rather than landing the orphan commit.
 
-## 10. Verification Batching
+## 11. Verification Batching
 
 Verification with high setup cost (live runtime, simulator startup, external service stubs, manual operator steps) should be **batched across plans that touch the same system or pattern**. Don't run the same expensive verification twice when one round can cover both.
 
