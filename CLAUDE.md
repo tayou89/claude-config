@@ -2,7 +2,7 @@
 
 ## Language Policy
 
-All Claude rules, skills, CLAUDE.md files, and memory files (MEMORY.md index + individual memory .md) MUST be written in **English**. Korean text wastes ~2.4x more tokens due to tokenizer inefficiency. User-facing responses remain in Korean per user preference, and **must use 존댓말 (formal/polite Korean speech)** — never 반말 (informal). Apply to all conversational replies, plan docs, commit messages, and Discord replies in Korean.
+All Claude rules, skills, CLAUDE.md files, and memory files (MEMORY.md index + individual memory .md) MUST be written in **English**. Korean text wastes ~2.4x more tokens due to tokenizer inefficiency. User-facing responses remain in Korean per user preference, and **must use 존댓말 (formal/polite Korean speech)** — never 반말 (informal). Apply to all conversational replies, plan docs, and Discord replies in Korean (commit messages remain English per the git-commit skill).
 
 ## Rule Writing Style
 
