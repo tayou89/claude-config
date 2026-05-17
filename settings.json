@@ -362,7 +362,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "python3 /home/tayou/.claude/scripts/git-commit-hook.py"
+            "command": "python3 \"$HOME/.claude/scripts/git-commit-hook.py\""
           }
         ]
       },
