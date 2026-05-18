@@ -34,6 +34,22 @@ Skipping this step produces avoidable plan revisions when implementation surface
 
 For structural decisions (new file layout, where a new type lives, module split, naming), grep 2-3 analogous cases in the same codebase. Match the dominant local pattern, or justify the deviation in the plan. Skill rules don't override local conventions. If no precedent exists, flag it.
 
+## 4a. Pre-Plan Exhaustive Analysis (mandatory)
+
+Before drafting any plan, perform all of the following. Skipping any is the root cause of avoidable plan revisions.
+
+1. **Duplication scan**: Search the codebase for identical guard/query/narrow patterns the plan would introduce. If the same multi-line pattern would appear in 2+ call sites, the owner is missing an API — the plan must add the API on the owner, not duplicate the pattern on clients.
+2. **Owner identification**: For every piece of state, config, or flag the plan touches, name the owner class/module. If the plan has client code accessing it via gates (NO_OPERATION guards, type narrows, optional chains), prefer exposing a typed `getX()` / `registerXHandler(callback)` API on the owner. Client boilerplate against owner internals always signals a missing owner API.
+3. **3+ alternatives required**: Never propose the first working design. Evaluate at least three: (a) the dominant local pattern, (b) an industry-standard pattern for this concern (Observer, Strategy, etc.), (c) any cross-cutting-concern separation form. Present the best, not the first found.
+4. **Boilerplate detection**: If the proposed client code at any call site exceeds ~5 lines of guard/query/narrow before doing real work, the owner is under-exposing. Move the pattern into the owner.
+5. **Cross-cutting policy fields vs metadata**: Behavior-controlling flags (cancel policy, retry policy, timeout policy) belong as top-level fields on the entity, at the same level as other policy fields, not crammed into `metadata`/generic data containers. `metadata` is for identifiers and payload, not for policy.
+
+## 4b. Plan Revision Minimization
+
+v2+ plan revisions are failure signals — the design thinking that led to v(N+1) should have happened at v1. Acceptable revisions: user requirement change, externally-discovered constraint. Unacceptable: design omissions that section 4a should have caught (missed duplication, missed owner, missed alternative).
+
+When a revision happens, in the new version's "Changes from v(N-1)" section, briefly state what v(N-1) missed and why. Then check if the miss should become a permanent rule — add it to the relevant skill or CLAUDE.md immediately, not "next time". One correction is enough to warrant a rule (CLAUDE.md Core Work Principle 8).
+
 ## Language
 
 Plan content (headings, descriptions, steps) must be written in **Korean**.

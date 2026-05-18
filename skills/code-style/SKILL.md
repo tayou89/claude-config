@@ -109,6 +109,21 @@ Same-prefix methods must be adjacent. The numbered order above is the default; a
 
 All method and function names MUST use camelCase. PascalCase is reserved for classes, interfaces, types, and enums only.
 
+## Avoid Filler Prepositions in Identifier Names
+
+Avoid filler prepositions (`of`, `in`, `at`, `on`) in identifier names when they don't disambiguate. Use compound-noun form.
+
+- `getNameOfPerson` → `getPersonName`
+- `enablePropagationOfEstop` → `enableEstopPropagation`
+- `listOfItems` → `items` or `itemList`
+
+Keep meaningful prepositions (`to`, `from`, `by`, `with`) that express direction or relationship:
+
+- `convertToString` (direction) ✓
+- `parseFromJson` (origin) ✓
+- `getWorkByAgvId` (relation) ✓
+- `mergeWithDefault` (combine) ✓
+
 ## Minimum Access Exposure
 
 Prefer the most restrictive access modifier: private > protected > public. Use public only for methods **actually called from outside the class hierarchy**. Use protected for methods used by subclasses. Default to private for everything else — including `get*`/`set*`/lifecycle methods with no external callers. Promote to public when needed; demotion is harder than promotion.
@@ -221,6 +236,15 @@ If an argument is always a literal at every call site (never dynamic), encode it
 ## No Duplicate Logic
 
 Logic repeated in 2+ places → extract to a method. Check existing codebase for same patterns before writing new code.
+
+## Boilerplate Belongs on the Owner
+
+When two or more clients perform the same multi-line guard/narrow/query pattern against the same owner (e.g. `owner.getCurrent()` → `if (!== undefined && !== SENTINEL && .flag)` → invoke), the boilerplate belongs on the owner as a typed API, not as a shared helper outside the owner.
+
+- Anti-pattern: two modules define `_registerXxxHandler` private methods, each performing identical narrowing on `taskControl.getCurrentTask()`. → Promote into `taskControl.registerXxxHandler(callback)` and call sites become one line.
+- Anti-pattern: multiple consumers each implement the same `find by id + null check + cast` lookup. → Expose `findX(id): X | undefined` on the owner.
+
+Rule of thumb: client code accessing owner internals with guards is a signal the owner is missing an API. Add the API on the owner.
 
 ## Named Alias for Complex Type Constraints
 

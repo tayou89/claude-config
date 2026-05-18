@@ -184,6 +184,21 @@ It's a variant of `unknown`. Before using, check: (1) trace actual fields, (2) d
 
 **Allowed**: external API metadata, undocumented library options, generic constraints (`TTags extends Record<string, unknown>`).
 
+## Data vs Policy Separation
+
+Distinguish **data fields** (identifiers, payload — what the entity carries) from **policy fields** (cross-cutting behavior flags — how the entity should be handled). Place policy as dedicated top-level fields at the same level as other policy fields, not inside `metadata` or generic data containers.
+
+```ts
+interface Task<TMetadata> {
+    code: string;
+    inputEnable?: InputEnable;     // policy: user-input behavior
+    cancelEstop?: boolean;         // policy: cancel behavior (correct: top-level, peer of inputEnable)
+    metadata?: TMetadata;          // data: swapWorkIdx, agvId, slot — identifiers/payload
+}
+```
+
+Anti-pattern: stuffing policy flags into `metadata` ("metadata bloat"). Policy and data have different responsibilities; mixing them violates SRP and obscures intent. When a new cross-cutting policy emerges, add a peer field next to existing policy fields, never widen `metadata`.
+
 ## Index Signature Removal
 
 Before removing `[key: string]: T` from an interface, verify **both**:
