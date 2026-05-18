@@ -162,6 +162,10 @@ Default: wrap **entire function body**. Partial try-catch only when error handli
 
 **Auxiliary functions** (logging, monitoring, metrics, diagnostics): when called inside another function's logic, must contain their own try-catch internally so they never propagate errors to the caller. Auxiliary work must not break primary logic.
 
+## Variable Scope at try-catch Boundaries
+
+`let`/`const` declared inside `try` are not visible in `catch`/`finally` (block-scoped) — declare them outside `try` when shared across blocks, and inside the block when used only there.
+
 ## User-Friendly Error Messages
 
 Write error messages that non-technical people can understand. Avoid internal terms (tags, registers, instances).
