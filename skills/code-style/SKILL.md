@@ -246,6 +246,8 @@ When two or more clients perform the same multi-line guard/narrow/query pattern 
 
 Rule of thumb: client code accessing owner internals with guards is a signal the owner is missing an API. Add the API on the owner.
 
+**General API + specialized helper coexist on the owner**: When the owner already exposes a general API (`listenX`, `on`, `emit`) and clients wrap it with the same guard/check boilerplate, add a specialized helper on the owner that takes only the action-specific callback. The general API stays for arbitrary handlers; the specialized helper takes one line at the call site. Threshold: ~5+ lines of repeating boilerplate across 2+ clients warrants the specialized helper; less than that, direct use of the general API is fine.
+
 ## Named Alias for Complex Type Constraints
 
 When `extends` condition in conditional types exceeds one line or same structure repeats 2+ times, extract to a named type alias.
