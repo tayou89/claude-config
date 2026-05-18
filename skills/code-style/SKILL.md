@@ -210,6 +210,10 @@ Extract identical code into shared functions. In switch-case: if all cases produ
 
 Name functions/utilities by **what they produce**, not what input shape they take. Same role + different input shapes → one name, handle shapes internally (overloads, conditional types, type guards).
 
+## Function Name over Literal Argument
+
+If an argument is always a literal at every call site (never dynamic), encode it in the function name instead of passing it (e.g. `claimInSlot()` / `claimOutSlot()` rather than `claimSlot('in' | 'out')`).
+
 ## No Duplicate Logic
 
 Logic repeated in 2+ places → extract to a method. Check existing codebase for same patterns before writing new code.
