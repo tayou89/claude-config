@@ -27,6 +27,7 @@ Current hook-enforced skills:
 - **Non-trivial implementation**: Use `/plan` skill to write a plan and wait for explicit approval before coding. Simple Q&A, explanations, or minor fixes (typos, 1-2 line changes) skip this.
 - **Git commit**: Use `/git-commit` skill when a phase/unit of work completes. Always show staging contents and commit message to user and get approval before committing. Push also requires separate approval.
 - **Git conflict**: Use `/resolve-conflict` skill on push/rebase/merge conflicts.
+- **GitHub PR create**: Use `/pr-create` skill when creating any PR via `gh pr create`. Body MUST include Purpose / Background / Changes / Verification sections — never compose PR body purely from commit messages or use `--fill`.
 - **Integration/runtime test**: Read `integration-testing` skill before starting any test against a live or simulated environment (external dependencies: servers, simulators, databases, etc.).
 - **Config or env file**: Read `config-files` skill before creating or refactoring config modules, `.env` files, or env-driven setup.
 - **Agent use**: Read `agent-usage` skill before spawning any agent (sub-agent, team agent, parallel agents).
