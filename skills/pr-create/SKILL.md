@@ -83,6 +83,15 @@ testing, future refactors. Helps reviewers see what's NOT in this PR.>
 - Runtime/integration logs (which processes, duration, error grep result)
 - Skipped or deferred verification — explicitly state and explain
 
+### Readability
+
+Reviewers skim. Optimize every section for scannability.
+
+- Structure over prose: bullets, sub-headings, or tables for any section longer than 3 lines.
+- Inline-code mandatory: backtick every identifier, path, command, env var. References use `path:Lnn`.
+- No repetition across sections — each must add what previous sections cannot.
+- Active voice, short verbs. Wrap ~100 chars.
+
 ### Language policy for body content
 
 PR title and the skill rule text are English. Body **content** language follows user preference and project convention — the PR may be written in the team's working language. Code references, commit hashes, command output, and external system names stay in their original form (usually English).
