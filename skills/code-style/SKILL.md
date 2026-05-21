@@ -152,6 +152,10 @@ Don't evaluate the same state predicate twice in one code path; restructure to m
 
 Keep shared runtime state (registries, counters, flags) inside the producing closure; expose a single callable handle to outside callers instead of threading adapter closures through parameters.
 
+## Concrete Verbs for Identifiers
+
+Use concrete verbs that describe the specific action (add/remove, mark/unmark, register/unregister, enable/disable), not abstract verbs (watch, track, handle, manage) that delegate meaning to context.
+
 ## Prefer const
 
 Use `const` unless the variable is actually reassigned. `let` only for reassigned variables.
