@@ -156,6 +156,10 @@ Keep shared runtime state (registries, counters, flags) inside the producing clo
 
 Use concrete verbs that describe the specific action (add/remove, mark/unmark, register/unregister, enable/disable), not abstract verbs (watch, track, handle, manage) that delegate meaning to context.
 
+## Extract Multi-Line Inline Arguments
+
+Function arguments spanning 2+ lines (object literals, multi-property configs, multi-line arrow callbacks) should be extracted to a named local variable so the call site stays single-line and the name documents intent.
+
 ## Prefer const
 
 Use `const` unless the variable is actually reassigned. `let` only for reassigned variables.
