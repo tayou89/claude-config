@@ -140,6 +140,25 @@ Blank lines inside method bodies are allowed **only after variable declaration b
 
 Don't add `async` to functions that don't use `await`.
 
+## Sync Return When Signature Allows
+
+When a callback or return-type signature accepts both sync and async (`() => Promise<T> | void`, `() => T | Promise<T>`), write sync logic as a sync function. Don't wrap with `Promise.resolve()` or add `async`. The consumer's `await` handles both forms — the extra wrap only adds noise.
+
+```ts
+// Signature: () => Promise<unknown> | void
+
+// ✓ sync logic stays sync
+func: (): void => doSyncWork()
+
+// ✗ unnecessary Promise wrap
+func: (): Promise<void> => {
+    doSyncWork();
+    return Promise.resolve();
+}
+```
+
+Inspect the signature first; match the minimum form the type accepts.
+
 ## Prefer const
 
 Use `const` unless the variable is actually reassigned. `let` only for reassigned variables.
