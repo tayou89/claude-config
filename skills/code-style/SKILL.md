@@ -142,22 +142,15 @@ Don't add `async` to functions that don't use `await`.
 
 ## Sync Return When Signature Allows
 
-When a callback or return-type signature accepts both sync and async (`() => Promise<T> | void`, `() => T | Promise<T>`), write sync logic as a sync function. Don't wrap with `Promise.resolve()` or add `async`. The consumer's `await` handles both forms — the extra wrap only adds noise.
+When the signature accepts both sync and async (`() => Promise<T> | void`), write sync logic without `Promise.resolve()` wrap or `async` keyword.
 
-```ts
-// Signature: () => Promise<unknown> | void
+## Avoid Redundant State Checks
 
-// ✓ sync logic stays sync
-func: (): void => doSyncWork()
+Don't evaluate the same state predicate twice in one code path; restructure to mutually exclusive `if-else-if` with early returns.
 
-// ✗ unnecessary Promise wrap
-func: (): Promise<void> => {
-    doSyncWork();
-    return Promise.resolve();
-}
-```
+## State Owner Lives with Usage
 
-Inspect the signature first; match the minimum form the type accepts.
+Keep shared runtime state (registries, counters, flags) inside the producing closure; expose a single callable handle to outside callers instead of threading adapter closures through parameters.
 
 ## Prefer const
 
