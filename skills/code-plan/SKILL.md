@@ -103,6 +103,10 @@ Failure → revise the plan before requesting approval. Don't defer this to impl
 
 **Skip allowed only when**: the plan adds optional fields without changing existing signatures, generics, or call chains. Even then, briefly note `Mock feasibility: skipped (additive-only change)` in the plan body for traceability.
 
+## 6a. Style Compliance Check (mandatory before approval)
+
+Before requesting plan approval, audit every diff block line-by-line against `code-style` and language-specific skill rules. Verify common violations: early void return / guard throw, blank-line placement after const block, truthy vs nullish check default, consecutive try-catch in same scope, useless `await` on non-thenable, `.catch()` chaining, type assertions, named-export style, type/interface section blanks. Record result in plan body — `Style compliance: passed (rules audited: ...)` or `Style compliance: failed (reason → fixed)`. Failure → revise diff before approval; don't carry violations into implementation.
+
 ## 7. Request Approval
 
 Show plan summary and wait for **explicit approval**. No implementation code before approval.
