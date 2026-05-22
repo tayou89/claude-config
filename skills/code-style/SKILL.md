@@ -181,6 +181,14 @@ Place pure helpers (no `this`) in the narrowest consumer scope: single-class →
 
 Use `async/await` + `try/catch` instead of `.then().catch()`.
 
+## Floating Promises in Fan-out Callbacks
+
+Inside fire-and-forget callbacks (forEach without await, event-emitter listeners, setInterval): never leave a Promise unhandled. Use `await Promise.allSettled([...].map(fn))` with per-result `if rejected` log for parallel fan-out, or `for-of + await + try/catch` for sequential. Per-promise `.catch()` chaining is forbidden — violates "Don't mix await with .catch()" and returns void instead of propagating reject to the caller's try-catch.
+
+## Await Only Thenables
+
+Never `await` a function with `void` or non-Promise return — silent no-op masking a sync/async mismatch. Verify callee's return type before adding `await`. If the callee body holds floating Promises (`.catch()` chains, fire-and-forget), the callee itself is mis-declared sync and must be converted to `async` with proper internal `await`; conversely, if a function is declared `async` but its body has no real await target, demote it to sync.
+
 ## Extract Long Inline Callbacks
 
 Callbacks passed as parameters that exceed ~5 lines should be extracted to separate methods/functions.
