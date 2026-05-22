@@ -189,6 +189,10 @@ Inside fire-and-forget callbacks (forEach without await, event-emitter listeners
 
 Never `await` a function with `void` or non-Promise return — silent no-op masking a sync/async mismatch. Verify callee's return type before adding `await`. If the callee body holds floating Promises (`.catch()` chains, fire-and-forget), the callee itself is mis-declared sync and must be converted to `async` with proper internal `await`; conversely, if a function is declared `async` but its body has no real await target, demote it to sync.
 
+## Avoid Redundant Wrappers
+
+Don't define a wrapper function (helper, adapter, `safely*`, `try*`) that duplicates a guarantee the wrapped function already provides — call it directly. Before introducing a wrapper, verify the wrapped function's try-catch scope, return guarantees, idempotency. If the wrapper adds nothing the original doesn't already offer, it's noise; fix the wrapped function instead (e.g. extend its try-catch scope to cover the missing area).
+
 ## Extract Long Inline Callbacks
 
 Callbacks passed as parameters that exceed ~5 lines should be extracted to separate methods/functions.
