@@ -10,6 +10,10 @@ Keep all rules (CLAUDE.md, skills, memory) maximally concise — one clear sente
 
 **Skills must also be project-agnostic**: skill descriptions and rule text use generic technical terms ("test simulators", "live backend", "log files", "message brokers"), never project-specific names (concrete server addresses, proprietary service names, domain-specific equipment). Project-specific guidance belongs in that project's CLAUDE.md, not a global skill.
 
+## Document Writing
+
+When writing or revising documents, plans, reports, or explanations, follow the project-agnostic [Shared Writing Principles](rules/writing.md). Use semantic structure rather than a blanket one-sentence-per-bullet format.
+
 ## Skill Management
 
 Separate skills by scope: **general** (always apply) vs **task-specific** (only during that task type). When adding a new rule, place it in the most specific applicable skill first; only add to CLAUDE.md if the rule applies across all contexts. Always add a trigger rule in this CLAUDE.md specifying when a skill should be referenced. Propose splitting if a skill grows too large or mixes contexts.
