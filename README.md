@@ -1,35 +1,37 @@
 # Shared AI Configuration
 
-This repository contains existing Claude Code configuration and shared writing guidance for Claude Code and Codex.
+This repository contains the existing Claude Code configuration and a Codex adaptation of its engineering and writing rules.
 
-## Writing guidance
+## Contents
 
-- [Shared Writing Principles](rules/writing.md) is the source for project-independent writing rules.
-- [Codex global instructions](codex/AGENTS.md) is an identical copy for Codex's global instruction file.
-- [Claude behavior rules](CLAUDE.md) links to the shared principles.
+- [Claude behavior rules](CLAUDE.md) and the existing `skills/` remain the Claude configuration.
+- [Shared Writing Principles](rules/writing.md) defines project-independent writing guidance for both tools.
+- [Codex global instructions](codex/AGENTS.md) contains engineering/workflow preferences, skill routing, and the full shared writing principles.
+- [Codex skills](codex/skills/) contains ten task-specific instruction workflows.
+- [Migration notes](codex/MIGRATION.md) records retained rules, compatibility changes, and unsupported Claude-only features.
 
-The shared rules cover heading hierarchy, paragraphs and lists, precise wording, preservation of meaning, and final review. They contain no project examples.
+## Apply on a Computer
 
-## Apply on a computer
-
-| Tool | User-level destination | Scope |
+| Tool | Repository source | User-level destination |
 | --- | --- | --- |
-| Codex | `~/.codex/AGENTS.md` | All projects for that user when Codex loads its instruction chain |
-| Claude Code | `~/.claude/rules/writing.md` | All projects for that user when Claude Code loads user rules |
+| Codex global rules | `codex/AGENTS.md` | `$CODEX_HOME/AGENTS.md`, default `~/.codex/AGENTS.md` |
+| Codex task skills | Each directory under `codex/skills/` | `$CODEX_HOME/skills/<name>/`, default `~/.codex/skills/<name>/` |
+| Claude writing rules | `rules/writing.md` | `~/.claude/rules/writing.md` or the configured Claude directory |
 
-Use the configured home directory if `CODEX_HOME` or `CLAUDE_CONFIG_DIR` is customized. These are tool-specific user instructions, not an operating-system-wide setting for every app.
+Inspect and back up existing files first. Merge unrelated instructions rather than overwriting them. For Codex, check `AGENTS.override.md`, which takes precedence over the global AGENTS.md. Keep the skills beside AGENTS.md as shown so its relative references resolve. This layout is verified against the local Codex installation; current documentation also describes `~/.agents/skills` for user skills. If choosing that location instead, update the global skill links accordingly and avoid duplicate installations.
 
-Before installation, inspect and preserve any existing instruction files. For Codex, merge the content of `codex/AGENTS.md` into the existing global file rather than overwriting unrelated instructions. Check for `AGENTS.override.md`, which takes precedence at the global level. Start a new session to verify loading.
+Start a new conversation to load the complete instruction set. Codex normally detects skill changes; restart it if the skills are missing. The global defaults apply across that user's projects, together with project-specific instructions and current requests.
 
-For Claude Code, place `rules/writing.md` in the user-level rules directory. If this repository is checked out directly at `~/.claude`, that file is already in its user-level location. No additional import is required. Existing project guidance must remain consistent with these rules.
+For Claude Code, install `rules/writing.md` in its user rules directory. A checkout directly at `~/.claude` already places it there. Installing Codex rules does not install Claude plugins, permissions, hooks, scripts, or credentials.
 
-## Maintaining the shared rules
+## Maintenance
 
-Edit `rules/writing.md` and keep `codex/AGENTS.md` identical in the same change. After updating GitHub, explicitly refresh the installed local copies. GitHub updates alone do not synchronize them.
+Keep the Shared Writing Principles section of `codex/AGENTS.md` equivalent to `rules/writing.md`; only its heading levels differ because it is embedded in the larger document. They are no longer identical whole files.
 
-Keep machine-specific paths, permissions, plugins, hooks, and credentials separate from the shared writing guidance. Installing the writing rules does not require copying `settings.json` or installing the existing Claude-only scripts and skills.
+Review changes to the original Claude engineering rules for corresponding updates under `codex/`; do not copy Claude-only execution settings blindly. GitHub updates do not synchronize installed local copies automatically. Refresh local files deliberately after reviewing the changes.
 
 ## References
 
 - [Codex global instructions](https://learn.chatgpt.com/docs/agent-configuration/agents-md)
+- [Codex skill authoring and discovery](https://learn.chatgpt.com/docs/build-skills)
 - [Claude Code user-level rules](https://code.claude.com/docs/en/memory#user-level-rules)
