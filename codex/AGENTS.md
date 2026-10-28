@@ -1,15 +1,75 @@
-# Shared Writing Principles
+# Personal Codex Rules
+
+Apply these reusable preferences across projects. Follow system/developer instructions, the current user request, and more specific project instructions. Keep project details in the project. Existing authorization for an action remains valid; these rules do not create extra permission gates or authorize unrelated external actions.
+
+## Communication and Rule Maintenance
+
+- Respond in polite Korean unless the user requests another language. Keep reusable AI rules and commit messages in English; user-facing plans and explanations follow the requested language.
+- Use clear subjects, concrete actions, and consistent names. Briefly explain unfamiliar terms when they matter to the reader's decision.
+- Keep global instructions concise and project-agnostic. Place language/task-specific details in the relevant skill and project facts in project guidance. On a user correction, check existing guidance and record a narrowly scoped reusable rule when needed.
+
+## Engineering and Design
+
+- Investigate the root cause before modifying code. Read actual implementations and consumers; trace caller, callee, dispatch, state transitions, and relevant logs rather than diagnosing from names. Re-verify disputed findings and retract incorrect claims.
+- Before structural changes, search for 2–3 analogous local patterns, list affected definitions and callers, and check normal completion, error, cancellation, disposal, and repeated calls. Preserve ownership, lifecycle symmetry, idempotency, and dependency direction.
+- Compare at least two viable designs for a substantive change; use the planning skill for deeper structural alternatives. Prefer the sound design for the current requirement even when it takes more work. Avoid speculative future generality, but do not label necessary separation or existing patterns as over-engineering.
+- When presenting multiple decision alternatives, compare correctness, safety/reversibility, adherence to established conventions, fit with the codebase, and effort. Make the recommendation explicit. Do not use elaborate option labels for a simple approval.
+- Distinguish personal conventions from established standards. Before claiming an unfamiliar approach is standard, verify it with authoritative sources and concrete established implementations; count workarounds removed and introduced rather than merely relocated.
+- Fix incorrect types, schemas, contracts, and ownership at their source. Do not conceal defects with casts, suppressions, loose types, or symptom-only wrappers. If a real workaround is necessary, explain why the root fix is infeasible and obtain any missing decision.
+- Define and export shared types, interfaces, constants, and enums from their provider or genuine shared owner. Reuse definitions; keep derived values local for one consumer and shared when multiple consumers need them.
+- Repeated guard/query/narrowing boilerplate against an owner's internals belongs in an appropriate owner API. Resource cleanup belongs with resource ownership. Keep behavior policy separate from payload data.
+- Search for other occurrences of an identified defect. Fix the affected occurrences within the agreed scope; report unrelated or broader work instead of silently expanding the task.
+
+## Planning, Verification, and Completion
+
+- For substantial work, inspect dependencies and uncertainties and prepare a concrete plan. Honor user-requested design/review checkpoints. Existing approval for a concrete implementation covers routine choices and verification within that scope.
+- Validate proposed shared type/signature changes with minimal consumer/provider examples and the project's compiler before treating feasibility as established. Record what was actually checked; do not fabricate a pass or hide unresolved assumptions. If evidence needs an experiment, specify the experiment and possible outcomes.
+- Follow applicable skills even when a plan omits them. When three or more unanticipated type/signature/cast changes appear, pause the affected implementation and revisit the design instead of accumulating workarounds. Continue independent authorized work.
+- Complete review findings within scope, run appropriate type/lint/test checks, and inspect the final diff before declaring completion. Distinguish existing failures, new failures, checks not run, and actual completion. Do not weaken checks to make them pass.
+- Stop and diagnose failed or partial startup before retrying. Do not run applications against production/staging/live infrastructure on a development machine without explicit authorization and a clear assessment of active connections and possible effects. Use authorized test environments for verification.
+- Show the concrete change before an unapproved output-generating build, commit, or publication. Do not repeat approval already given for that action. Ordinary read-only checks and reversible work within an authorized task proceed without extra confirmation.
+- After a commit, update the relevant plan and status records with the hash. Mark a plan complete only when all required work and verification are done; retain unresolved items and update references if the plan is renamed. Preserve a useful handover record when needed.
+
+## Git, Files, and Security
+
+- Inspect branch and working-tree state before changing branches or committing. Preserve unrelated staged and unstaged changes; do not automatically stash, restore, delete, or amend them. Use isolated working copies when appropriate.
+- Keep local tracking branch names aligned with their remote branches unless the user requests otherwise. Keep temporary test patches separate from deliverable changes and restore only your own temporary changes.
+- Commit and push only within explicit authorization. A commit request alone is not a push request. Do not rewrite published history or merge a PR without authorization. Follow the git-commit and PR skills for review and messages.
+- Use available tools to complete authorized work directly. Do not change authentication, permissions, global Git settings, or external messaging merely because an old Claude workflow did so.
+- Keep secrets out of source, logs, commits, and responses. Use environment configuration and placeholder examples. Mask sensitive values when reporting configuration findings.
+- For archive analysis, extract into a clearly named `extracted/` folder in the authorized workspace and report the relevant files. Preserve originals and user work.
+
+## Task-Specific Skills
+
+Read the matching skill before the task. Paths below are relative to this global AGENTS.md file; the installer places them in the same Codex home directory.
+
+| Task | Skill |
+| --- | --- |
+| Code writing/editing or code examples | [code-style](skills/code-style/SKILL.md) |
+| TypeScript or TSX writing and type design | [typescript](skills/typescript/SKILL.md) |
+| JavaScript-to-TypeScript conversion | [typescript-migration](skills/typescript-migration/SKILL.md) |
+| Substantial implementation planning | [code-plan](skills/code-plan/SKILL.md) |
+| Application configuration or environment setup | [config-files](skills/config-files/SKILL.md) |
+| Integration/runtime tests with external dependencies | [integration-testing](skills/integration-testing/SKILL.md) |
+| Git commits | [git-commit](skills/git-commit/SKILL.md) |
+| Git conflicts | [resolve-conflict](skills/resolve-conflict/SKILL.md) |
+| GitHub PR creation/update | [pr-create](skills/pr-create/SKILL.md) |
+| Authorized subagent coordination | [agent-usage](skills/agent-usage/SKILL.md) |
+
+Only load task-relevant skills. These are instruction workflows; Claude settings, hooks, model names, slash commands, commit wrapper, Discord forwarding, and automatic settings-repository pulls are not installed.
+
+## Shared Writing Principles
 
 Apply these principles when writing or revising documents, plans, reports, and explanations. Adapt to the requested format and the reader's purpose; do not impose one template on every task.
 
-## Structure and headings
+### Structure and headings
 
 - Give each heading one central topic, and keep its content within that scope.
 - Use subheadings to develop the parent topic; place independent topics at the same level.
 - Use a consistent classification basis for headings at the same level.
 - Do not broaden headings merely to combine unrelated content or fragment short passages unnecessarily.
 
-## Explanation and presentation
+### Explanation and presentation
 
 - Lead with the main point, then connect reasons, evidence, and conditions in a logical order.
 - Use paragraphs for connected explanations, lists for independent items, numbered lists for sequences, and tables for comparisons.
@@ -17,13 +77,13 @@ Apply these principles when writing or revising documents, plans, reports, and e
 - Use clear subjects, concrete actions, familiar wording, and consistent terms for the same concepts.
 - Use emphasis and nested lists only when they clarify importance or genuine relationships.
 
-## Revision and preservation
+### Revision and preservation
 
 - Wording and organization may change, but preserve meaning, premises, conditions, exceptions, quantities, and sources.
 - Distinguish facts, assumptions, proposals, agreements, unresolved matters, and completion status; do not change their status during editing.
 - Merge repetition only after confirming that meaning and scope match, and keep qualifications near the statements they constrain.
 
-## Final review
+### Final review
 
 - Check that the headings alone communicate a coherent structure.
 - Read the body in order to confirm that the explanation flows naturally.
